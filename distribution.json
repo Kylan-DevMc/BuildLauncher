@@ -11,13 +11,13 @@
       "id": "BuildLauncher-1.21.1",
       "name": "BuildLauncher",
       "description": "1.21.1",
-      "icon": "https://cdn.discordapp.com/attachments/1174323609024593940/1549759543628791871/image.png?ex=6aabdd8c&is=6aaa8c0c&hm=e48e25282742778ac478f0d83abc96d46c475943671ef2658f0077d9da8e52a3&width=676&height=676",
+      "icon": "",
       "version": "1.0.0",
       "address": "localhost",
       "minecraftVersion": "1.21.1",
       "discord": {
         "shortId": "",
-        "largeImageText": "BuildLauncher",
+        "largeImageText": "",
         "largeImageKey": ""
       },
       "mainServer": true,

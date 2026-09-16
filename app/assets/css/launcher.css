@@ -205,6 +205,7 @@ html, body {
     transition: background-color 1s ease;
     /*background-color: rgba(0, 0, 0, 0.5);*/
     -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Undraggable region on the top of the frame. */
@@ -486,12 +487,14 @@ html, body {
 #welcomeButton:hover #welcomeSVG,
 #welcomeButton:focus #welcomeSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    filter: drop-shadow(0px 0px 2px #fff);
 }
 #welcomeButton:active #welcomeSVG .arrowLine {
     stroke: #c7c7c7;
 }
 #welcomeButton:active #welcomeSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    filter: drop-shadow(0px 0px 2px #c7c7c7);
 }
 #welcomeButton:disabled #welcomeSVG .arrowLine {
     stroke: rgba(255, 255, 255, 0.75);
@@ -788,12 +791,14 @@ html, body {
 #loginButton:hover #loginSVG,
 #loginButton:focus #loginSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    filter: drop-shadow(0px 0px 2px #fff);
 }
 #loginButton:active #loginSVG .arrowLine {
     stroke: #c7c7c7;
 }
 #loginButton:active #loginSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    filter: drop-shadow(0px 0px 2px #c7c7c7);
 }
 #loginButton:disabled #loginSVG .arrowLine {
     stroke: rgba(255, 255, 255, 0.75);
@@ -944,6 +949,7 @@ html, body {
     cursor: pointer;
     font-size: 22px;
     -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Hide the default checkbox. */
@@ -1423,6 +1429,7 @@ html, body {
 /* Remove spin button from number inputs. */
 #settingsContainer input[type=number]::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
 }
 
 /* Default styles for text/number inputs. */
@@ -1737,6 +1744,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsAuthAccountDetailValue {
     font-size: 14px;
     -webkit-user-select: initial;
+    user-select: initial;
 }
 
 /* Account actions container. */
@@ -2688,6 +2696,7 @@ input:checked + .toggleSwitchSlider:before {
     width: 100%;
     display: flex;
     -webkit-user-select: initial;
+    user-select: initial;
     position: relative;
 }
 
@@ -2891,6 +2900,7 @@ input:checked + .toggleSwitchSlider:before {
     align-items: center;
     margin-bottom: 10px;
     -webkit-user-select: none;
+    user-select: none;
     position: absolute;
     bottom: 15px;
     right: 0px;
@@ -2916,6 +2926,7 @@ input:checked + .toggleSwitchSlider:before {
 #newsNavigateRight:hover #newsNavigationRightSVG,
 #newsNavigateRight:focus #newsNavigationRightSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    filter: drop-shadow(0px 0px 2px #fff);
 }
 #newsNavigateLeft:active #newsNavigationLeftSVG .arrowLine,
 #newsNavigateRight:active #newsNavigationRightSVG .arrowLine {
@@ -2924,6 +2935,7 @@ input:checked + .toggleSwitchSlider:before {
 #newsNavigateLeft:active #newsNavigationLeftSVG,
 #newsNavigateRight:active #newsNavigationRightSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    filter: drop-shadow(0px 0px 2px #c7c7c7);
 }
 #newsNavigateLeft:disabled #newsNavigationLeftSVG .arrowLine,
 #newsNavigateRight:disabled #newsNavigationRightSVG .arrowLine {
@@ -3166,6 +3178,7 @@ input:checked + .toggleSwitchSlider:before {
     letter-spacing: 2px;
     background-color: rgba(0, 0, 0, 0.35);
     -webkit-user-select: none;
+    user-select: none;
     border: none;
     cursor: pointer;
     width: 100%;
@@ -3191,6 +3204,7 @@ input:checked + .toggleSwitchSlider:before {
     right: 95px;
     text-align: right;
     -webkit-user-select: initial;
+    user-select: initial;
 }
 
 /* Texte supplémentaire sous le pseudo */
@@ -3205,6 +3219,7 @@ input:checked + .toggleSwitchSlider:before {
     text-align: right;
     margin-top: 33px; /* Espace entre le pseudo et le texte */
     -webkit-user-select: none;
+    user-select: none;
 }
 
 .status-dot {
@@ -3597,12 +3612,14 @@ input:checked + .toggleSwitchSlider:before {
 #newsButton:hover #newsButtonSVG,
 #newsButton:focus #newsButtonSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    filter: drop-shadow(0px 0px 2px #fff);
 }
 #newsButton:active #newsButtonSVG .arrowLine {
     stroke: #c7c7c7;
 }
 #newsButton:active #newsButtonSVG {
     -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    filter: drop-shadow(0px 0px 2px #c7c7c7);
 }
 #newsButton:disabled #newsButtonSVG .arrowLine {
     stroke: rgba(255, 255, 255, 0.75);
@@ -3755,6 +3772,7 @@ input:checked + .toggleSwitchSlider:before {
     height: 3px;
     width: 150px;
     -webkit-appearance: none;
+    appearance: none;
     border-radius: 3px;
 }
 #launch_progress[value]::-webkit-progress-bar {
@@ -3847,6 +3865,7 @@ input:checked + .toggleSwitchSlider:before {
     font-weight: bold;
     letter-spacing: 1px;
     -webkit-user-select: initial;
+    user-select: initial;
 }
 
 /* Overlay description styles. */
@@ -3854,6 +3873,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 12px;
     font-weight: bold;
     -webkit-user-select: initial;
+    user-select: initial;
 }
 
 /* Div which contains action buttons. */

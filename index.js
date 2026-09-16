@@ -13,6 +13,10 @@ const { pathToFileURL }                 = require('url')
 const { AZURE_CLIENT_ID, MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR, SHELL_OPCODE } = require('./app/assets/js/ipcconstants')
 const LangLoader                        = require('./app/assets/js/langloader')
 
+// Keep Chromium cache files in a project-local writable directory.
+app.setPath('cache', path.join(__dirname, '.electron-cache'))
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache')
+
 // Setup Lang
 LangLoader.setupLanguage()
 
@@ -227,6 +231,7 @@ function createWindow() {
     win = new BrowserWindow({
         width: 980,
         height: 552,
+        show: false,
         icon: getPlatformIcon('SealCircle'),
         frame: false,
         webPreferences: {
@@ -246,9 +251,17 @@ function createWindow() {
 
     win.loadURL(pathToFileURL(path.join(__dirname, 'app', 'app.ejs')).toString())
 
-    /*win.once('ready-to-show', () => {
+    win.once('ready-to-show', () => {
         win.show()
-    })*/
+    })
+
+    win.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedURL) => {
+        console.error(`Renderer load failed (${errorCode}): ${errorDescription} - ${validatedURL}`)
+    })
+
+    win.webContents.on('render-process-gone', (_, details) => {
+        console.error('Renderer process exited:', details)
+    })
 
     win.removeMenu()
 
