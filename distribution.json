@@ -8,13 +8,17 @@
   },
   "servers": [
     {
-      "id": "BuildLauncher-1.21.1",
+      "id": "BuildLauncher-1.21.11",
       "name": "BuildLauncher",
-      "description": "1.21.1",
-      "icon": "",
+      "description": "Minecraft 1.21.11 avec NeoForge",
+      "icon": "https://cdn.discordapp.com/attachments/1174323609024593940/1549759543628791871/image.png?ex=6aabdd8c&is=6aaa8c0c&hm=e48e25282742778ac478f0d83abc96d46c475943671ef2658f0077d9da8e52a3&",
       "version": "1.0.0",
       "address": "localhost",
-      "minecraftVersion": "1.21.1",
+      "minecraftVersion": "1.21.11",
+      "javaOptions": {
+        "supported": ">=21",
+        "suggestedMajor": 21
+      },
       "discord": {
         "shortId": "",
         "largeImageText": "",
@@ -22,7 +26,30 @@
       },
       "mainServer": true,
       "autoconnect": false,
-      "modules": []
+      "modules": [
+        {
+          "id": "net.neoforged:neoforge:21.11.45",
+          "name": "Minecraft NeoForge 21.11.45",
+          "type": "ForgeHosted",
+          "artifact": {
+            "size": 3831805,
+            "MD5": "5c7f6daaaf7ac63cf62f22a5647da923",
+            "url": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.11.45/neoforge-21.11.45-universal.jar"
+          },
+          "subModules": [
+            {
+              "id": "1.21.11",
+              "name": "Minecraft 1.21.11",
+              "type": "VersionManifest",
+              "artifact": {
+                "size": 42184,
+                "MD5": "d1cdf9ea5aecbbdf66636a22fd73b086",
+                "url": "https://piston-meta.mojang.com/v1/packages/f8d822c54003334930a71b7b7b5e16b3d98ea9fd/1.21.11.json"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

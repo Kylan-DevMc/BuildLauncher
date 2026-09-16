@@ -13,33 +13,14 @@
         }
     },
     "newsCache": {
-        "date": 1788994560000,
-        "content": "dc194fcf19e2106de788ceaec2ae0c2ad62775bd",
+        "date": null,
+        "content": null,
         "dismissed": false
     },
     "clientToken": null,
     "selectedServer": "BuildLauncher-1.21.1",
     "selectedAccount": null,
     "authenticationDatabase": {},
-    "modConfigurations": [
-        {
-            "id": "BuildLauncher-1.21.1",
-            "mods": {}
-        }
-    ],
-    "javaConfig": {
-        "BuildLauncher-1.21.1": {
-            "minRAM": "4G",
-            "maxRAM": "4G",
-            "executable": null,
-            "jvmOptions": [
-                "-XX:+UnlockExperimentalVMOptions",
-                "-XX:+UseG1GC",
-                "-XX:G1NewSizePercent=20",
-                "-XX:G1ReservePercent=20",
-                "-XX:MaxGCPauseMillis=50",
-                "-XX:G1HeapRegionSize=32M"
-            ]
-        }
-    }
+    "modConfigurations": [],
+    "javaConfig": {}
 }

@@ -76,9 +76,7 @@ tabModsHeaderDesc = "Activer ou désactiver les mods."
 switchServerButton = "Switch"
 requiredMods = "Mods requiers pour jouer"
 optionalMods = "Mods optionels pour jouer"
-dropinMods = "Drop-in Mods"
 addMods = "Ajouter un mod"
-dropinRefreshNote = "(F5 pour actualiser)"
 shaderpacks = "Shaderpacks"
 shaderpackDesc = "Activer ou désactiver les shaders. Veuillez noter que les shaders ne fonctionneront correctement que sur des configurations puissantes. Vous pouvez ajouter des shaderpacks ici"
 selectShaderpack = "Select Shaderpack"
@@ -248,13 +246,6 @@ uuid = "Cobblemon-Ultra UUID"
 selectAccount = "Séléctionner ?"
 selectedAccount = "Compte séléctionné ✓"
 logout = "Retirer"
-
-[js.settings.dropinMods]
-removeButton = "Retirer"
-deleteFailedTitle = "Failed to Delete<br>Drop-in Mod {fullName}"
-deleteFailedMessage = "Make sure the file is not in use and try again."
-failedToggleTitle = "Failed to Toggle<br>One or More Drop-in Mods"
-okButton = "Okay"
 
 [js.settings.serverListing]
 mainServer = "Main Server"

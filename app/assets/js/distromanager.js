@@ -9,6 +9,14 @@ const ConfigManager = require('./configmanager')
 exports.REMOTE_DISTRO_URL = 'https://launcher.cobblemon-ultra.fr/distribution.json'
 
 const localDistroPath = path.resolve(__dirname, '../../../distribution.json')
+const localDistroDevPath = path.join(ConfigManager.getLauncherDirectory(), 'distribution_dev.json')
+
+try {
+    fs.copyFileSync(localDistroPath, localDistroDevPath)
+} catch (err) {
+    console.error('Unable to prepare development distribution:', err)
+}
+
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
     null, // Injected forcefully by the preloader.

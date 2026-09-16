@@ -13,8 +13,10 @@ const { pathToFileURL }                 = require('url')
 const { AZURE_CLIENT_ID, MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR, SHELL_OPCODE } = require('./app/assets/js/ipcconstants')
 const LangLoader                        = require('./app/assets/js/langloader')
 
-// Keep Chromium cache files in a project-local writable directory.
-app.setPath('cache', path.join(__dirname, '.electron-cache'))
+// Keep launcher data stable while using a fresh cache after legacy migrations fail.
+const userDataPath = path.join(app.getPath('appData'), 'Build Launcher')
+app.setPath('userData', userDataPath)
+app.setPath('cache', path.join(userDataPath, 'Cache-v2'))
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache')
 
 // Setup Lang
@@ -251,7 +253,14 @@ function createWindow() {
 
     win.loadURL(pathToFileURL(path.join(__dirname, 'app', 'app.ejs')).toString())
 
+    const showFallback = setTimeout(() => {
+        if (win && !win.isDestroyed()) {
+            win.show()
+        }
+    }, 3000)
+
     win.once('ready-to-show', () => {
+        clearTimeout(showFallback)
         win.show()
     })
 

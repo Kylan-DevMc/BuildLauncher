@@ -400,18 +400,36 @@ class ProcessBuilder {
         const argDiscovery = /\${*(.*)}/
 
         // JVM Arguments First
-        let args = this.vanillaManifest.arguments.jvm
+        let args = []
+        const modJvmArguments = this.modManifest.id === this.vanillaManifest.id ? [] : (this.modManifest.arguments.jvm ?? [])
+        const jvmArguments = this.vanillaManifest.arguments.jvm.concat(modJvmArguments)
+        const replaceArgument = (arg) => arg
+            .replaceAll('${library_directory}', this.libPath)
+            .replaceAll('${classpath_separator}', ProcessBuilder.getClasspathSeparator())
+            .replaceAll('${version_name}', this.modManifest.id)
 
-        // Debug securejarhandler
-        // args.push('-Dbsl.debug=true')
+        for(const argument of jvmArguments) {
+            if(typeof argument === 'object') {
+                let matchesRules = 0
+                for(const rule of argument.rules ?? []) {
+                    if(rule.os != null) {
+                        if(rule.os.name === getMojangOS()
+                            && (rule.os.version == null || new RegExp(rule.os.version).test(os.release))) {
+                            if(rule.action === 'allow') {
+                                matchesRules++
+                            }
+                        } else if(rule.action === 'disallow') {
+                            matchesRules++
+                        }
+                    }
+                }
 
-        if(this.modManifest.arguments.jvm != null) {
-            for(const argStr of this.modManifest.arguments.jvm) {
-                args.push(argStr
-                    .replaceAll('${library_directory}', this.libPath)
-                    .replaceAll('${classpath_separator}', ProcessBuilder.getClasspathSeparator())
-                    .replaceAll('${version_name}', this.modManifest.id)
-                )
+                if(matchesRules === (argument.rules ?? []).length) {
+                    const values = Array.isArray(argument.value) ? argument.value : [argument.value]
+                    args.push(...values.filter(value => typeof value === 'string').map(replaceArgument))
+                }
+            } else if(typeof argument === 'string') {
+                args.push(replaceArgument(argument))
             }
         }
 
@@ -541,8 +559,10 @@ class ProcessBuilder {
         this._processAutoConnectArg(args)
         
 
-        // Forge Specific Arguments
-        args = args.concat(this.modManifest.arguments.game)
+        // Add loader-specific game arguments when the loader has its own profile.
+        if(this.modManifest.id !== this.vanillaManifest.id) {
+            args = args.concat(this.modManifest.arguments.game ?? [])
+        }
 
         // Filter null values
         args = args.filter(arg => {
@@ -671,11 +691,14 @@ class ProcessBuilder {
     classpathArg(mods, tempNativePath){
         let cpArgs = []
 
-        if(!mcVersionAtLeast('1.17', this.server.rawServer.minecraftVersion) || this.usingFabricLoader) {
-            // Add the version.jar to the classpath.
-            // Must not be added to the classpath for Forge 1.17+.
+        const isNeoForge = this.server.modules.some(module => module.rawModule.id.startsWith('net.neoforged:neoforge:'))
+        if(!mcVersionAtLeast('1.17', this.server.rawServer.minecraftVersion) || this.usingFabricLoader || isNeoForge) {
+            // NeoForge 21.x launches from the client jar and needs it on the classpath.
             const version = this.vanillaManifest.id
-            cpArgs.push(path.join(this.commonDir, 'versions', version, version + '.jar'))
+            const clientPath = path.join(this.commonDir, 'versions', version, version + '.jar')
+            if(fs.existsSync(clientPath)) {
+                cpArgs.push(clientPath)
+            }
         }
         
 
