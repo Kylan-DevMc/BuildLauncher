@@ -47,22 +47,20 @@ function shakeError(element){
 }
 
 /**
- * Validate that an email field is neither empty nor invalid.
- * 
- * @param {string} value The email value.
+ * Validate that an email or username field is neither empty nor invalid.
+ *
+ * @param {string} value The email or username value.
  */
 function validateEmail(value){
     if(value){
-        if(!basicEmail.test(value) && !validUsername.test(value)){
+        if(!validUsername.test(value)){
             showError(loginEmailError, Lang.queryJS('login.error.invalidValue'))
             loginDisabled(true)
             lu = false
         } else {
             loginEmailError.style.opacity = 0
             lu = true
-            if(lp){
-                loginDisabled(false)
-            }
+            loginDisabled(false)  // Activer directement le bouton Continuer
         }
     } else {
         lu = false
@@ -73,7 +71,7 @@ function validateEmail(value){
 
 /**
  * Validate that the password field is not empty.
- * 
+ *
  * @param {string} value The password value.
  */
 function validatePassword(value){
@@ -95,17 +93,10 @@ loginUsername.addEventListener('focusout', (e) => {
     validateEmail(e.target.value)
     shakeError(loginEmailError)
 })
-loginPassword.addEventListener('focusout', (e) => {
-    validatePassword(e.target.value)
-    shakeError(loginPasswordError)
-})
 
 // Validate input for each field.
 loginUsername.addEventListener('input', (e) => {
     validateEmail(e.target.value)
-})
-loginPassword.addEventListener('input', (e) => {
-    validatePassword(e.target.value)
 })
 
 /**
@@ -142,8 +133,8 @@ function loginLoading(v){
 function formDisabled(v){
     loginDisabled(v)
     loginCancelButton.disabled = v
-    loginUsername.disabled = v
-    loginPassword.disabled = v
+    loginUsername.disabled = true;
+    loginPassword.style.display = 'none';
     if(v){
         checkmarkContainer.setAttribute('disabled', v)
     } else {

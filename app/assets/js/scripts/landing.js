@@ -28,7 +28,7 @@ const {
 }                             = require('helios-core/java')
 
 // Internal Requirements
-const DiscordWrapper          = require('./assets/js/discordwrapper')
+//const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
 
 // Launch Elements
@@ -91,11 +91,21 @@ function setDownloadPercentage(percent){
 
 /**
  * Enable or disable the launch button.
- * 
+ *
  * @param {boolean} val True to enable, false to disable.
  */
 function setLaunchEnabled(val){
     document.getElementById('launch_button').disabled = !val
+}
+
+/**
+ * Disable the launch button for 10 seconds after game launch.
+ */
+function disableLaunchTemporarily(){
+    setLaunchEnabled(false)
+    setTimeout(() => {
+        setLaunchEnabled(true)
+    }, 15000)
 }
 
 // Bind launch button
@@ -149,10 +159,12 @@ function updateSelectedAccount(authUser){
             username = authUser.displayName
         }
         if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/avatar/${authUser.displayName}')`
         }
     }
-    user_text.innerHTML = username
+    const updateIcon = document.getElementById('updateIconContainer')
+    const iconHTML = updateIcon ? updateIcon.outerHTML : ''
+    user_text.innerHTML = iconHTML + username
 }
 updateSelectedAccount(ConfigManager.getSelectedAccount())
 
@@ -443,7 +455,7 @@ let hasRPC = false
 // Change this if your server uses something different.
 const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
-const MIN_LINGER = 5000
+const MIN_LINGER = 10000
 
 async function dlAsync(login = true) {
 
@@ -560,21 +572,21 @@ async function dlAsync(login = true) {
         // const SERVER_JOINED_REGEX = /\[.+\]: \[CHAT\] [a-zA-Z0-9_]{1,16} joined the game/
         const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
 
+        let launchDotsInterval = null
+
         const onLoadComplete = () => {
-            toggleLaunchArea(false)
-            if(hasRPC){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.loading'))
-                proc.stdout.on('data', gameStateChange)
+            if(launchDotsInterval) {
+                clearInterval(launchDotsInterval)
+                launchDotsInterval = null
             }
+            setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
+            toggleLaunchArea(false)
+            disableLaunchTemporarily()
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
         const start = Date.now()
 
-        // Attach a temporary listener to the client output.
-        // Will wait for a certain bit of text meaning that
-        // the client application has started, and we can hide
-        // the progress bar stuff.
         const tempListener = function(data){
             if(GAME_LAUNCH_REGEX.test(data.trim())){
                 const diff = Date.now()-start
@@ -583,16 +595,6 @@ async function dlAsync(login = true) {
                 } else {
                     onLoadComplete()
                 }
-            }
-        }
-
-        // Listener for Discord RPC.
-        const gameStateChange = function(data){
-            data = data.trim()
-            if(SERVER_JOINED_REGEX.test(data)){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.joined'))
-            } else if(GAME_JOINED_REGEX.test(data)){
-                DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.joining'))
             }
         }
 
@@ -612,19 +614,18 @@ async function dlAsync(login = true) {
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
 
-            setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
-
-            // Init Discord Hook
-            if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
-                DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
-                hasRPC = true
-                proc.on('close', (code, signal) => {
-                    loggerLaunchSuite.info('Shutting down Discord Rich Presence..')
-                    DiscordWrapper.shutdownRPC()
-                    hasRPC = false
-                    proc = null
-                })
-            }
+            // Animated dots on launch text
+            const launchText = Lang.queryJS('landing.dlAsync.launchingGame')
+            let launchDotStr = ''
+            setLaunchDetails(launchText)
+            launchDotsInterval = setInterval(() => {
+                if(launchDotStr.length >= 3){
+                    launchDotStr = ''
+                } else {
+                    launchDotStr += '.'
+                }
+                setLaunchDetails(launchText + launchDotStr)
+            }, 750)
 
         } catch(err) {
 

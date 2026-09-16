@@ -71,11 +71,7 @@ class ProcessBuilder {
             args = args.concat(this.constructModList(modObj.fMods))
         }
 
-        // Hide access token
-        const loggableArgs = [...args]
-        loggableArgs[loggableArgs.findIndex(x => x === this.authUser.accessToken)] = '**********'
-
-        logger.info('Launch Arguments:', loggableArgs)
+        logger.info('Launch Arguments:', args)
 
         const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
             cwd: this.gameDir,
@@ -96,7 +92,7 @@ class ProcessBuilder {
         child.stderr.on('data', (data) => {
             data.trim().split('\n').forEach(x => console.log(`\x1b[31m[Minecraft]\x1b[0m ${x}`))
         })
-        child.on('close', (code) => {
+        child.on('close', (code, signal) => {
             logger.info('Exited with code', code)
             fs.remove(tempNativePath, (err) => {
                 if(err){
@@ -234,7 +230,7 @@ class ProcessBuilder {
                     return true
                 }
             }
-        } catch (_err) {
+        } catch (err) {
             // We know old forge versions follow this format.
             // Error must be caused by newer version.
         }
@@ -843,7 +839,9 @@ class ProcessBuilder {
                 libs[mdl.getVersionlessMavenIdentifier()] = mdl.getPath()
                 if(mdl.subModules.length > 0){
                     const res = this._resolveModuleLibraries(mdl)
-                    libs = {...libs, ...res}
+                    if(res.length > 0){
+                        libs = {...libs, ...res}
+                    }
                 }
             }
         }
@@ -852,7 +850,9 @@ class ProcessBuilder {
         for(let i=0; i<mods.length; i++){
             if(mods.sub_modules != null){
                 const res = this._resolveModuleLibraries(mods[i])
-                libs = {...libs, ...res}
+                if(res.length > 0){
+                    libs = {...libs, ...res}
+                }
             }
         }
 
@@ -863,25 +863,27 @@ class ProcessBuilder {
      * Recursively resolve the path of each library required by this module.
      * 
      * @param {Object} mdl A module object from the server distro index.
-     * @returns {{[id: string]: string}} An object containing the paths of each library this module requires.
+     * @returns {Array.<string>} An array containing the paths of each library this module requires.
      */
     _resolveModuleLibraries(mdl){
-        if(mdl.subModules.length === 0){
-            return {}
+        if(!mdl.subModules.length > 0){
+            return []
         }
-        let libs = {}
+        let libs = []
         for(let sm of mdl.subModules){
             if(sm.rawModule.type === Type.Library){
 
                 if(sm.rawModule.classpath ?? true) {
-                    libs[sm.getVersionlessMavenIdentifier()] = sm.getPath()
+                    libs.push(sm.getPath())
                 }
             }
             // If this module has submodules, we need to resolve the libraries for those.
             // To avoid unnecessary recursive calls, base case is checked here.
             if(mdl.subModules.length > 0){
                 const res = this._resolveModuleLibraries(sm)
-                libs = {...libs, ...res}
+                if(res.length > 0){
+                    libs = libs.concat(res)
+                }
             }
         }
         return libs

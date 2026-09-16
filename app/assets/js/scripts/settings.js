@@ -4,9 +4,21 @@ const semver = require('semver')
 
 const DropinModUtil  = require('./assets/js/dropinmodutil')
 const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
+const { Logger } = require('winston')
 
 const settingsState = {
     invalid: new Set()
+}
+
+function resetLoginForm() {
+    const usernameField = document.getElementById('loginUsername');
+    const passwordField = document.getElementById('loginPassword');
+    
+    usernameField.disabled = false;
+    usernameField.value = ''; // Réinitialiser le champ pseudo
+
+    passwordField.disabled = false;
+    passwordField.value = ''; // Réinitialiser le champ mot de passe
 }
 
 function bindSettingsSelect(){
@@ -344,6 +356,7 @@ const msftLogoutLogger = LoggerUtil.getLogger('Microsoft Logout')
 
 // Bind the add mojang account button.
 document.getElementById('settingsAddMojangAccount').onclick = (e) => {
+    resetLoginForm();
     switchView(getCurrentView(), VIEWS.login, 500, 500, () => {
         loginViewOnCancel = VIEWS.settings
         loginViewOnSuccess = VIEWS.settings
@@ -496,7 +509,7 @@ function bindAuthAccountLogOut(){
             } else {
                 processLogOut(val, isLastAccount)
             }
-            
+
         }
     })
 }
@@ -508,34 +521,38 @@ let msAccDomElementCache
  * @param {Element} val The log out button element.
  * @param {boolean} isLastAccount If this logout is on the last added account.
  */
-function processLogOut(val, isLastAccount){
-    const parent = val.closest('.settingsAuthAccount')
-    const uuid = parent.getAttribute('uuid')
-    const prevSelAcc = ConfigManager.getSelectedAccount()
-    const targetAcc = ConfigManager.getAuthAccount(uuid)
-    if(targetAcc.type === 'microsoft') {
-        msAccDomElementCache = parent
+function processLogOut(val, isLastAccount) {
+    const parent = val.closest('.settingsAuthAccount');
+    const uuid = parent.getAttribute('uuid');
+    const prevSelAcc = ConfigManager.getSelectedAccount();
+    const targetAcc = ConfigManager.getAuthAccount(uuid);
+
+    if (targetAcc.type === 'microsoft') {
+        msAccDomElementCache = parent;
         switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
-            ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount)
-        })
+            ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount);
+        });
     } else {
-        AuthManager.removeMojangAccount(uuid).then(() => {
-            if(!isLastAccount && uuid === prevSelAcc.uuid){
-                const selAcc = ConfigManager.getSelectedAccount()
-                refreshAuthAccountSelected(selAcc.uuid)
-                updateSelectedAccount(selAcc)
-                validateSelectedAccount()
+        AuthManager.removeMojangAccount(uuid, resetLoginForm).then(() => {
+            if (!isLastAccount && uuid === prevSelAcc.uuid) {
+                const selAcc = ConfigManager.getSelectedAccount();
+                refreshAuthAccountSelected(selAcc.uuid);
+                updateSelectedAccount(selAcc);
+                validateSelectedAccount();
             }
-            if(isLastAccount) {
-                loginOptionsCancelEnabled(false)
-                loginOptionsViewOnLoginSuccess = VIEWS.settings
-                loginOptionsViewOnLoginCancel = VIEWS.loginOptions
-                switchView(getCurrentView(), VIEWS.loginOptions)
+            if (isLastAccount) {
+                loginOptionsCancelEnabled(false);
+                loginOptionsViewOnLoginSuccess = VIEWS.settings;
+                loginOptionsViewOnLoginCancel = VIEWS.loginOptions;
+                switchView(getCurrentView(), VIEWS.loginOptions);
             }
-        })
+        }).catch(err => {
+            console.error("Failed to remove Mojang account:", err);
+        });
+        
         $(parent).fadeOut(250, () => {
-            parent.remove()
-        })
+            parent.remove();
+        });
     }
 }
 
@@ -640,17 +657,13 @@ function populateAuthAccounts(){
 
         const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
             <div class="settingsAuthAccountLeft">
-                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.uuid}/60">
+                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.displayName}/60">
             </div>
             <div class="settingsAuthAccountRight">
                 <div class="settingsAuthAccountDetails">
                     <div class="settingsAuthAccountDetailPane">
                         <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.username')}</div>
                         <div class="settingsAuthAccountDetailValue">${acc.displayName}</div>
-                    </div>
-                    <div class="settingsAuthAccountDetailPane">
-                        <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.uuid')}</div>
-                        <div class="settingsAuthAccountDetailValue">${acc.uuid}</div>
                     </div>
                 </div>
                 <div class="settingsAuthAccountActions">
