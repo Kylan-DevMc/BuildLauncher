@@ -52,6 +52,11 @@
                     <!--<div class="spinningCircle" id="loginSpinner"></div>-->
                 </div>
             </button>
+            <div id="adminOtpPanel" hidden>
+                <input id="adminOtpInput" type="text" inputmode="numeric" maxlength="6" placeholder="Code OTP" autocomplete="one-time-code">
+                <button id="adminOtpVerify" type="button">Vérifier</button>
+                <span id="adminOtpStatus" role="status"></span>
+            </div>
             <div id="loginDisclaimer">
                 <span class="loginSpanDim" id="loginRegisterSpan">
                     <a>INFORMATION :</a>
@@ -62,4 +67,5 @@
         </form>
     </div>
     <script src="./assets/js/scripts/login.js"></script>
+    <script src="./assets/js/adminotp.js"></script>
 </div>

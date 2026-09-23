@@ -4,6 +4,7 @@ remoteMain.initialize()
 // Requirements
 const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
+const child_process                     = require('child_process')
 const ejse                              = require('ejs-electron')
 const fs                                = require('fs')
 const isDev                             = require('./app/assets/js/isdev')
@@ -227,6 +228,33 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let otpProcess
+
+function startOtpService() {
+    if(!isDev || otpProcess) return
+
+    const serviceDirectory = path.join(__dirname, 'bot-otp')
+    otpProcess = child_process.spawn(process.platform === 'win32' ? 'node.exe' : 'node', ['server.js'], {
+        cwd: serviceDirectory,
+        env: process.env,
+        stdio: ['ignore', 'pipe', 'pipe']
+    })
+
+    otpProcess.stdout.on('data', data => console.log(`[OTP] ${data.toString().trim()}`))
+    otpProcess.stderr.on('data', data => console.error(`[OTP] ${data.toString().trim()}`))
+    otpProcess.on('error', error => console.error('Unable to start OTP service:', error))
+    otpProcess.on('exit', (code, signal) => {
+        console.log(`OTP service stopped (${code ?? signal})`)
+        otpProcess = null
+    })
+}
+
+function stopOtpService() {
+    if(otpProcess && !otpProcess.killed) {
+        otpProcess.kill()
+        otpProcess = null
+    }
+}
 
 function createWindow() {
 
@@ -361,8 +389,13 @@ function getPlatformIcon(filename){
     return path.join(__dirname, 'app', 'assets', 'images', `${filename}.${ext}`)
 }
 
-app.on('ready', createWindow)
+app.on('ready', () => {
+    startOtpService()
+    createWindow()
+})
 app.on('ready', createMenu)
+
+app.on('before-quit', stopOtpService)
 
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar

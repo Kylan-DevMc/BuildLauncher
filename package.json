@@ -1,7 +1,7 @@
 {
   "name": "buildlauncher",
   "version": "1.2.0",
-  "productName": "Build Launcher",
+  "productName": "BuildLauncher",
   "description": "Minecraft launcher",
   "author": "Daniel Scalzi (https://github.com/dscalzi/)",
   "license": "UNLICENSED",

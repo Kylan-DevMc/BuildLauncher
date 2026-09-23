@@ -818,6 +818,56 @@ html, body {
     display: initial;
 }
 
+#adminOtpToggle,
+#adminOtpVerify {
+    background: none;
+    border: 0;
+    color: #aeb8c2;
+    cursor: pointer;
+    font-family: 'Avenir Medium';
+    font-size: 9px;
+    padding: 5px;
+}
+
+#adminOtpToggle:hover,
+#adminOtpToggle:focus,
+#adminOtpVerify:hover,
+#adminOtpVerify:focus {
+    color: #fff;
+    outline: none;
+}
+
+#adminOtpPanel {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+}
+
+#adminOtpInput {
+    background: none;
+    border: 1px solid #fff;
+    box-sizing: border-box;
+    color: #fff;
+    font-family: 'Avenir Book';
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 6px;
+    text-align: center;
+    width: 130px;
+}
+
+#adminOtpInput:focus {
+    outline: none;
+}
+
+#adminOtpStatus {
+    color: #aeb8c2;
+    font-size: 8px;
+    min-height: 12px;
+    text-align: center;
+}
+
 
 .circle-loader {
     margin-left: 20px;

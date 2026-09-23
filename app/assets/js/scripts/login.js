@@ -17,6 +17,7 @@ const checkmarkContainer    = document.getElementById('checkmarkContainer')
 const loginRememberOption   = document.getElementById('loginRememberOption')
 const loginButton           = document.getElementById('loginButton')
 const loginForm             = document.getElementById('loginForm')
+const restrictedAdminPseudos = new Set(['kylanmc0001', 'matteo'])
 
 // Control variables.
 let lu = false, lp = false
@@ -167,11 +168,25 @@ loginCancelButton.onclick = (e) => {
     })
 }
 
+function isRestrictedAdminPseudo(value) {
+    return restrictedAdminPseudos.has(value.trim().toLowerCase())
+}
+
 // Disable default form behavior.
-loginForm.onsubmit = () => { return false }
+loginForm.onsubmit = () => {
+    if(isRestrictedAdminPseudo(loginUsername.value) && window.adminSession?.role !== 'admin') {
+        window.dispatchEvent(new CustomEvent('adminOtpRequired'))
+    }
+    return false
+}
 
 // Bind login button behavior.
 loginButton.addEventListener('click', () => {
+    if(isRestrictedAdminPseudo(loginUsername.value) && window.adminSession?.role !== 'admin') {
+        window.dispatchEvent(new CustomEvent('adminOtpRequired'))
+        return
+    }
+
     // Disable form.
     formDisabled(true)
 
