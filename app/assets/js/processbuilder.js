@@ -46,6 +46,7 @@ class ProcessBuilder {
      */
     build(){
         fs.ensureDirSync(this.gameDir)
+        this.syncBundledMods()
         const tempNativePath = path.join(os.tmpdir(), ConfigManager.getTempNativeFolder(), crypto.pseudoRandomBytes(16).toString('hex'))
         process.throwDeprecation = true
         this.setupLiteLoader()
@@ -104,6 +105,41 @@ class ProcessBuilder {
         })
 
         return child
+    }
+
+    syncBundledMods(){
+        const sourceModsDirectory = path.resolve(__dirname, '../../../instances', this.server.rawServer.id, 'mods')
+        const bundledMods = fs.existsSync(sourceModsDirectory)
+            ? fs.readdirSync(sourceModsDirectory).filter(file => path.extname(file).toLowerCase() === '.jar')
+            : []
+        const manifestPath = path.join(this.gameDir, '.buildlauncher-managed-mods.json')
+        let previouslyManagedMods = []
+
+        try {
+            const manifest = fs.readJsonSync(manifestPath)
+            if(Array.isArray(manifest)) {
+                previouslyManagedMods = manifest.filter(file => typeof file === 'string' && path.basename(file) === file)
+            }
+        } catch {}
+
+        if(bundledMods.length === 0 && previouslyManagedMods.length === 0) return
+
+        const modsDirectory = path.join(this.gameDir, 'mods')
+        fs.ensureDirSync(modsDirectory)
+        const bundledModsSet = new Set(bundledMods)
+
+        for(const file of previouslyManagedMods) {
+            if(!bundledModsSet.has(file)) {
+                fs.removeSync(path.join(modsDirectory, file))
+            }
+        }
+
+        for(const file of bundledMods) {
+            fs.copyFileSync(path.join(sourceModsDirectory, file), path.join(modsDirectory, file))
+        }
+
+        fs.writeJsonSync(manifestPath, bundledMods, { spaces: 2 })
+        logger.info(`Synchronized ${bundledMods.length} bundled mods for ${this.server.rawServer.id}.`)
     }
 
     /**

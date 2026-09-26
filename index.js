@@ -137,7 +137,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGIN, (ipcEvent, ...arguments_) => {
         width: 520,
         height: 600,
         frame: true,
-        icon: getPlatformIcon('SealCircle')
+        icon: getPlatformIcon('SealCircle copy')
     })
 
     msftAuthWindow.on('closed', () => {
@@ -188,7 +188,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
         width: 520,
         height: 600,
         frame: true,
-        icon: getPlatformIcon('SealCircle')
+        icon: getPlatformIcon('SealCircle copy')
     })
 
     msftLogoutWindow.on('closed', () => {
@@ -230,8 +230,18 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 let win
 let otpProcess
 
-function startOtpService() {
+async function startOtpService() {
     if(!isDev || otpProcess) return
+
+    try {
+        const response = await fetch('http://127.0.0.1:8787/health', {
+            signal: AbortSignal.timeout(1000)
+        })
+        if(response.ok) {
+            console.log('[OTP] Existing OTP service detected; reusing it.')
+            return
+        }
+    } catch {}
 
     const serviceDirectory = path.join(__dirname, 'bot-otp')
     otpProcess = child_process.spawn(process.platform === 'win32' ? 'node.exe' : 'node', ['server.js'], {
@@ -262,7 +272,7 @@ function createWindow() {
         width: 980,
         height: 552,
         show: false,
-        icon: getPlatformIcon('SealCircle'),
+        icon: getPlatformIcon('SealCircle copy'),
         frame: false,
         webPreferences: {
             preload: path.join(__dirname, 'app', 'assets', 'js', 'preloader.js'),
@@ -374,23 +384,24 @@ function createMenu() {
 }
 
 function getPlatformIcon(filename){
-    let ext
-    switch(process.platform) {
-        case 'win32':
-            ext = 'ico'
-            break
-        case 'darwin':
-        case 'linux':
-        default:
-            ext = 'png'
-            break
+    const imageDir = path.join(__dirname, 'app', 'assets', 'images')
+    const extCandidates = process.platform === 'win32'
+        ? ['ico', 'png']
+        : ['png', 'ico']
+
+    for (const ext of extCandidates) {
+        const fullPath = path.join(imageDir, `${filename}.${ext}`)
+        if (fs.existsSync(fullPath)) {
+            return fullPath
+        }
     }
 
-    return path.join(__dirname, 'app', 'assets', 'images', `${filename}.${ext}`)
+    const fallbackExt = process.platform === 'win32' ? 'ico' : 'png'
+    return path.join(imageDir, `${filename}.${fallbackExt}`)
 }
 
 app.on('ready', () => {
-    startOtpService()
+    startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
     createWindow()
 })
 app.on('ready', createMenu)

@@ -41,7 +41,7 @@ Generer une valeur aleatoire pour `OTP_PEPPER`, par exemple avec PowerShell :
 npm start
 ```
 
-Un admin utilise `/otp` dans Discord. Le bot lui envoie un code prive de 6 chiffres, valable 5 minutes et utilisable une seule fois.
+La saisie d'un pseudo reserve dans le login demande automatiquement un OTP au bot; il envoie le code par DM aux comptes listes dans `ADMIN_DISCORD_IDS`. Le code expire apres 5 minutes, n'est utilisable qu'une fois et les demandes sont limitees a une par minute. Un admin peut aussi demander manuellement un code avec `/otp` dans Discord.
 
 Le pseudo `admin` ouvre discretement le panneau OTP dans le login. Le launcher appelle `POST /otp/verify` avec `{ "pseudo": "admin", "code": "123456" }`. L'URL locale est definie dans `app/assets/js/adminotp.js`; pour la production, la remplacer par une URL HTTPS.
 

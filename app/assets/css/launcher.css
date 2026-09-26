@@ -844,6 +844,11 @@ html, body {
     margin-top: 5px;
 }
 
+#adminOtpPanel[hidden],
+#loginButton[hidden] {
+    display: none !important;
+}
+
 #adminOtpInput {
     background: none;
     border: 1px solid #fff;
@@ -862,10 +867,14 @@ html, body {
 }
 
 #adminOtpStatus {
+    display: block;
     color: #aeb8c2;
-    font-size: 8px;
-    min-height: 12px;
+    font-size: 10px;
+    line-height: 1.4;
+    margin-top: 4px;
+    min-height: 16px;
     text-align: center;
+    width: 250px;
 }
 
 

@@ -151,6 +151,16 @@ function generateHexUUID() {
 
 exports.addMojangAccount = async function(username, password) {
     try {
+        const normalizedUsername = username.trim().toLowerCase()
+        const existingAccount = Object.values(ConfigManager.getAuthAccounts()).find(account =>
+            account.type === 'mojang' && account.displayName.toLowerCase() === normalizedUsername
+        )
+        if(existingAccount != null) {
+            ConfigManager.setSelectedAccount(existingAccount.uuid)
+            ConfigManager.save()
+            return existingAccount
+        }
+
         const uuid = generateHexUUID(); // Générer un UUID personnalisé
 
         const ret = ConfigManager.addMojangAuthAccount(uuid, 'sry', username, username);

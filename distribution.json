@@ -54,11 +54,11 @@
     {
       "id": "BuildLauncher-1.21.11-Modde",
       "name": "Build Moddée",
-      "description": "Instance Build Moddée Minecraft 1.21.11 avec NeoForge",
+      "description": "Instance Build Moddée Minecraft 1.21.1 avec NeoForge",
       "icon": "https://cdn.discordapp.com/attachments/1174323609024593940/1549759543628791871/image.png?ex=6aabdd8c&is=6aaa8c0c&hm=e48e25282742778ac478f0d83abc96d46c475943671ef2658f0077d9da8e52a3&",
       "version": "1.0.0",
       "address": "localhost",
-      "minecraftVersion": "1.21.11",
+      "minecraftVersion": "1.21.1",
       "javaOptions": {
         "supported": ">=21",
         "suggestedMajor": 21
@@ -72,23 +72,23 @@
       "autoconnect": false,
       "modules": [
         {
-          "id": "net.neoforged:neoforge:21.11.45",
-          "name": "Minecraft NeoForge 21.11.45",
+          "id": "net.neoforged:neoforge:21.1.251",
+          "name": "Minecraft NeoForge 21.1.251",
           "type": "ForgeHosted",
           "artifact": {
-            "size": 3831805,
-            "MD5": "5c7f6daaaf7ac63cf62f22a5647da923",
-            "url": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.11.45/neoforge-21.11.45-universal.jar"
+            "size": 3551265,
+            "MD5": "8d19e04a9cf498091e6811e74c952b00",
+            "url": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.251/neoforge-21.1.251-universal.jar"
           },
           "subModules": [
             {
-              "id": "1.21.11",
-              "name": "Minecraft 1.21.11",
+              "id": "1.21.1",
+              "name": "Minecraft 1.21.1",
               "type": "VersionManifest",
               "artifact": {
-                "size": 42184,
-                "MD5": "d1cdf9ea5aecbbdf66636a22fd73b086",
-                "url": "https://piston-meta.mojang.com/v1/packages/f8d822c54003334930a71b7b7b5e16b3d98ea9fd/1.21.11.json"
+                "size": 38408,
+                "MD5": "eccc8d292094e22d78e97b1bd4833e8b",
+                "url": "https://piston-meta.mojang.com/v1/packages/eb17d0d5933eec4a056c9f649db1e33c69622785/1.21.1.json"
               }
             }
           ]

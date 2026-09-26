@@ -1,6 +1,9 @@
 name: Build
 
-on: push
+on:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   release:
@@ -16,6 +19,11 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v6
+
+      - name: Verify release tag version
+        run: |
+          node -e "const version = require('./package.json').version; if (process.env.GITHUB_REF_NAME !== 'v' + version) throw new Error('Release tag must match package.json version: v' + version)"
+        shell: bash
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -34,5 +42,5 @@ jobs:
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
+        run: npm run dist -- --publish always
         shell: bash
