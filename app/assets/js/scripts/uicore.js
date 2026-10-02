@@ -43,6 +43,9 @@ if(!isDev){
         switch(arg){
             case 'checking-for-update':
                 loggerAutoUpdater.info('Checking for update..')
+                if (typeof settingsUpdateTitle !== 'undefined') {
+                    settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.checkingForUpdatesButton')
+                }
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkingForUpdateButton'), true)
                 break
             case 'update-available':
@@ -66,6 +69,9 @@ if(!isDev){
                 break
             case 'update-not-available':
                 loggerAutoUpdater.info('No new update found.')
+                if (typeof settingsUpdateTitle !== 'undefined') {
+                    settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.latestVersionTitle')
+                }
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkForUpdatesButton'))
                 break
             case 'ready':

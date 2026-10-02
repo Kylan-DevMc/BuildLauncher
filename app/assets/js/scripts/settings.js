@@ -1380,8 +1380,24 @@ const settingsUpdateActionButton   = document.getElementById('settingsUpdateActi
 function settingsUpdateButtonStatus(text, disabled = false, handler = null){
     settingsUpdateActionButton.innerHTML = text
     settingsUpdateActionButton.disabled = disabled
-    if(handler != null){
-        settingsUpdateActionButton.onclick = handler
+
+    const defaultHandler = () => {
+        if(isDev){
+            return
+        }
+
+        settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.checkingForUpdatesButton')
+        settingsUpdateActionButton.disabled = true
+        ipcRenderer.send('autoUpdateAction', 'checkForUpdate')
+    }
+
+    settingsUpdateActionButton.onclick = () => {
+        if(handler != null){
+            handler()
+            return
+        }
+
+        defaultHandler()
     }
 }
 
