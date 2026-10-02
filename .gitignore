@@ -5,3 +5,4 @@
 /target/
 /logs/
 /dist/
+/build/otp-runtime/

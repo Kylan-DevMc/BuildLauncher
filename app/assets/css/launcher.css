@@ -1104,6 +1104,20 @@ html, body {
     position: relative;
 }
 
+#waitingCancelButton {
+    margin-top: 24px;
+    padding: 8px 18px;
+    color: white;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+}
+
+#waitingCancelButton:hover,
+#waitingCancelButton:focus {
+    background: rgba(255, 255, 255, 0.16);
+}
+
 .waitingSpinner:before {
     transform: rotateX(60deg) rotateY(45deg) rotateZ(45deg);
     animation: 750ms rotateBefore infinite linear reverse;

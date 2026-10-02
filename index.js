@@ -4,6 +4,7 @@ remoteMain.initialize()
 // Requirements
 const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
+const AdmZip                            = require('adm-zip')
 const child_process                     = require('child_process')
 const ejse                              = require('ejs-electron')
 const fs                                = require('fs')
@@ -168,7 +169,20 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGIN, (ipcEvent, ...arguments_) => {
 
     msftAuthWindow.removeMenu()
     msftAuthWindow.loadURL(`https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?prompt=select_account&client_id=${AZURE_CLIENT_ID}&response_type=code&scope=XboxLive.signin%20offline_access&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient`)
+        .catch(error => {
+            console.error('Unable to open Microsoft sign-in:', error)
+            msftAuthSuccess = true
+            ipcEvent.reply(MSFT_OPCODE.REPLY_LOGIN, MSFT_REPLY_TYPE.ERROR, 'MSFT_AUTH_ERR_LOAD_FAILED', msftAuthViewOnClose)
+            msftAuthWindow?.close()
+            msftAuthWindow = null
+        })
 })
+
+        ipcMain.on(MSFT_OPCODE.CANCEL_LOGIN, () => {
+            if(msftAuthWindow && !msftAuthWindow.isDestroyed()) {
+                msftAuthWindow.close()
+            }
+        })
 
 // Microsoft Auth Logout
 let msftLogoutWindow
@@ -231,7 +245,35 @@ let win
 let otpProcess
 
 async function startOtpService() {
-    if(!isDev || otpProcess) return
+    if(otpProcess) return
+
+    const serviceResourceDirectory = app.isPackaged
+        ? path.join(process.resourcesPath, 'bot-otp')
+        : path.join(__dirname, 'bot-otp')
+    const configDirectory = app.isPackaged
+        ? path.join(userDataPath, 'bot-otp')
+        : serviceResourceDirectory
+    const envPath = path.join(configDirectory, '.env')
+
+    if(!fs.existsSync(envPath) && app.isPackaged) {
+        fs.mkdirSync(configDirectory, { recursive: true })
+        fs.copyFileSync(path.join(serviceResourceDirectory, '.env.example'), envPath)
+        console.warn(`[OTP] Configure Discord credentials in ${envPath}, then restart the launcher.`)
+        return
+    }
+
+    if(!fs.existsSync(envPath)) {
+        console.warn(`[OTP] No configuration found at ${envPath}; the service was not started.`)
+        return
+    }
+
+    const envContent = fs.readFileSync(envPath, 'utf8')
+    const requiredEnv = ['DISCORD_BOT_TOKEN', 'DISCORD_CLIENT_ID', 'ADMIN_DISCORD_IDS', 'OTP_PEPPER']
+    const missingEnv = requiredEnv.filter(name => !new RegExp(`^${name}=\\s*[^\\s#]+`, 'm').test(envContent))
+    if(missingEnv.length > 0) {
+        console.warn(`[OTP] Complete ${missingEnv.join(', ')} in ${envPath}; the service was not started.`)
+        return
+    }
 
     try {
         const response = await fetch('http://127.0.0.1:8787/health', {
@@ -243,10 +285,26 @@ async function startOtpService() {
         }
     } catch {}
 
-    const serviceDirectory = path.join(__dirname, 'bot-otp')
-    otpProcess = child_process.spawn(process.platform === 'win32' ? 'node.exe' : 'node', ['server.js'], {
+    let serviceDirectory = serviceResourceDirectory
+    if(app.isPackaged) {
+        serviceDirectory = path.join(configDirectory, 'runtime')
+        if(!fs.existsSync(path.join(serviceDirectory, 'server.js'))) {
+            fs.mkdirSync(serviceDirectory, { recursive: true })
+            new AdmZip(path.join(serviceResourceDirectory, 'bot-otp-runtime.zip')).extractAllTo(serviceDirectory, true)
+        }
+    }
+
+    const executable = app.isPackaged
+        ? process.execPath
+        : (process.platform === 'win32' ? 'node.exe' : 'node')
+    const serverArgs = [path.join(serviceDirectory, 'server.js')]
+    otpProcess = child_process.spawn(executable, app.isPackaged ? serverArgs : ['server.js'], {
         cwd: serviceDirectory,
-        env: process.env,
+        env: {
+            ...process.env,
+            DOTENV_CONFIG_PATH: envPath,
+            ...(app.isPackaged ? { ELECTRON_RUN_AS_NODE: '1' } : {})
+        },
         stdio: ['ignore', 'pipe', 'pipe']
     })
 

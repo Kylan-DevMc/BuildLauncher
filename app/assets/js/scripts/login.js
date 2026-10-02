@@ -4,6 +4,7 @@
 // Validation Regexes.
 const validUsername         = /^[a-zA-Z0-9_]{1,16}$/
 const basicEmail            = /^\S+@\S+\.\S+$/
+const { isDisplayableError: isLoginDisplayableError } = require('helios-core/common')
 //const validEmail          = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 
 // Login Elements
@@ -134,7 +135,7 @@ function loginLoading(v){
 function formDisabled(v){
     loginDisabled(v)
     loginCancelButton.disabled = v
-    loginUsername.disabled = true;
+    loginUsername.disabled = v
     loginPassword.style.display = 'none';
     if(v){
         checkmarkContainer.setAttribute('disabled', v)
@@ -220,7 +221,7 @@ loginButton.addEventListener('click', () => {
         loginLoading(false)
 
         let actualDisplayableError
-        if(isDisplayableError(displayableError)) {
+        if(isLoginDisplayableError(displayableError)) {
             msftLoginLogger.error('Error while logging in.', displayableError)
             actualDisplayableError = displayableError
         } else {

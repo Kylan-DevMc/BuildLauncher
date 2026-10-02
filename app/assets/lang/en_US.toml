@@ -36,7 +36,7 @@ loginPasswordDisclaimer2 = "{appName} is not affiliated with Mojang AB."
 
 [ejs.loginOptions]
 loginOptionsTitle = "Connexion"
-loginWithMicrosoft = "Login with Microsoft"
+loginWithMicrosoft = "Se connecter à Microsoft"
 loginWithMojang = "Login with Mojang"
 cancelButton = "Annuler"
 

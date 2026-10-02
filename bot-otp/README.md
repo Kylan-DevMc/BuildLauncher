@@ -43,6 +43,8 @@ npm start
 
 La saisie d'un pseudo reserve dans le login demande automatiquement un OTP au bot; il envoie le code par DM aux comptes listes dans `ADMIN_DISCORD_IDS`. Le code expire apres 5 minutes, n'est utilisable qu'une fois et les demandes sont limitees a une par minute. Un admin peut aussi demander manuellement un code avec `/otp` dans Discord.
 
+Dans l'application Windows compilee, le launcher copie `.env.example` vers `%APPDATA%\Build Launcher\bot-otp\.env` au premier demarrage. Renseigner les secrets dans ce fichier sur le PC administrateur, puis redemarrer le launcher. Ce fichier reste dans le profil Windows et n'est jamais inclus dans l'installateur; ne pas le partager.
+
 Le pseudo `admin` ouvre discretement le panneau OTP dans le login. Le launcher appelle `POST /otp/verify` avec `{ "pseudo": "admin", "code": "123456" }`. L'URL locale est definie dans `app/assets/js/adminotp.js`; pour la production, la remplacer par une URL HTTPS.
 
 Reponse acceptee : `{ "ok": true, "role": "admin" }`.

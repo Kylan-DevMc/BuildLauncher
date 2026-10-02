@@ -1,6 +1,10 @@
 // Requirements
 const os     = require('os')
 const semver = require('semver')
+const {
+    ensureJavaDirIsRoot: ensureSettingsJavaDirIsRoot,
+    validateSelectedJvm: validateSettingsSelectedJvm
+} = require('helios-core/java')
 
 const DropinModUtil  = require('./assets/js/dropinmodutil')
 const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
@@ -948,7 +952,7 @@ async function loadSelectedServerOnModsTab(){
         el.innerHTML = `
             <img class="serverListingImg" src="${serv.rawServer.icon}"/>
             <div class="serverListingDetails">
-                <span class="serverListingName">${serv.rawServer.name}</span>
+                <span class="serverListingName">${window.ServerUtils.getServerDisplayName(serv)}${window.ServerUtils.isModdedServer(serv) ? ' (Moddé)' : ''}</span>
                 <span class="serverListingDescription">${serv.rawServer.description}</span>
                 <div class="serverListingInfo">
                     <div class="serverListingVersion">${serv.rawServer.minecraftVersion}</div>
@@ -1205,7 +1209,7 @@ function populateMemoryStatus(){
 async function populateJavaExecDetails(execPath){
     const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
 
-    const details = await validateSelectedJvm(ensureJavaDirIsRoot(execPath), server.effectiveJavaOptions.supported)
+    const details = await validateSettingsSelectedJvm(ensureSettingsJavaDirIsRoot(execPath), server.effectiveJavaOptions.supported)
 
     if(details != null) {
         settingsJavaExecDetails.innerHTML = Lang.queryJS('settings.java.selectedJava', { version: details.semverStr, vendor: details.vendor })

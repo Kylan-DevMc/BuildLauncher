@@ -14,9 +14,15 @@ compression: 'maximum'
 
 files:
   - '!{dist,.gitignore,.vscode,docs,dev-app-update.yml,.nvmrc,eslint.config.mjs}'
+  - '!bot-otp/**'
 
 extraResources:
   - 'libraries'
+  - from: 'build/otp-runtime'
+    to: 'bot-otp'
+    filter:
+      - '.env.example'
+      - 'bot-otp-runtime.zip'
 
 # Windows Configuration
 win: 

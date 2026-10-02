@@ -2,6 +2,7 @@ const loginOptionsCancelContainer = document.getElementById('loginOptionCancelCo
 const loginOptionMicrosoft = document.getElementById('loginOptionMicrosoft')
 const loginOptionMojang = document.getElementById('loginOptionMojang')
 const loginOptionsCancelButton = document.getElementById('loginOptionCancelButton')
+const waitingCancelButton = document.getElementById('waitingCancelButton')
 
 let loginOptionsCancellable = false
 
@@ -34,6 +35,10 @@ loginOptionMojang.onclick = (e) => {
         loginViewOnCancel = loginOptionsViewOnLoginCancel
         loginCancelEnabled(true)
     })
+}
+
+waitingCancelButton.onclick = () => {
+    ipcRenderer.send(MSFT_OPCODE.CANCEL_LOGIN)
 }
 
 loginOptionsCancelButton.onclick = (e) => {

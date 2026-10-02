@@ -1,6 +1,6 @@
 {
   "name": "buildlauncher",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "productName": "BuildLauncher",
   "description": "Minecraft launcher",
   "author": "Build Game Launcher",
@@ -13,6 +13,7 @@
   "main": "index.js",
   "scripts": {
     "start": "electron .",
+    "pre-dist": "npm ci --prefix bot-otp && node scripts/stage-otp.js",
     "dist": "electron-builder build",
     "dist:win": "npm run dist -- -w",
     "dist:mac": "npm run dist -- -m",

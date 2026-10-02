@@ -15,7 +15,7 @@ const host = process.env.HOST || '127.0.0.1'
 const pepper = process.env.OTP_PEPPER
 const expirationMs = 5 * 60 * 1000
 const adminIds = new Set(process.env.ADMIN_DISCORD_IDS.split(',').map(value => value.trim()).filter(Boolean))
-const adminTriggerPseudos = new Set((process.env.ADMIN_TRIGGER_PSEUDOS || 'admin').split(',').map(value => value.trim().toLowerCase()).filter(Boolean))
+const adminTriggerPseudos = new Set((process.env.ADMIN_TRIGGER_PSEUDOS || 'kylanmc0001,matteo').split(',').map(value => value.trim().toLowerCase()).filter(Boolean))
 const pendingOtps = new Map()
 const otpRequestCooldowns = new Map()
 const requestCooldownMs = 60 * 1000

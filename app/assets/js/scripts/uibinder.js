@@ -9,6 +9,7 @@ const { Type }      = require('helios-distribution-types')
 const AuthManager   = require('./assets/js/authmanager')
 const ConfigManager = require('./assets/js/configmanager')
 const { DistroAPI } = require('./assets/js/distromanager')
+window.ServerUtils = require('./assets/js/serverutils')
 
 let rscShouldLoad = false
 let fatalStartupError = false
