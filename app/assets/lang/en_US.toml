@@ -20,7 +20,7 @@ newsErrorNoneSpan = "No News"
 
 [ejs.login]
 loginCancelText = "Annuler"
-loginSubheader = "Compte Crack"
+loginSubheader = "Compte hors ligne"
 loginEmailError = "* Invalid Value"
 loginEmailPlaceholder = "EMAIL OR USERNAME"
 loginPasswordError = "* Requiet"
@@ -37,7 +37,7 @@ loginPasswordDisclaimer2 = "{appName} is not affiliated with Mojang AB."
 [ejs.loginOptions]
 loginOptionsTitle = "Connexion"
 loginWithMicrosoft = "Se connecter à Microsoft"
-loginWithMojang = "Login with Mojang"
+loginWithMojang = "Compte hors ligne"
 cancelButton = "Annuler"
 
 [ejs.overlay]

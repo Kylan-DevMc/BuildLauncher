@@ -12,6 +12,10 @@ let loginOptionsViewOnCancel
 let loginOptionsViewCancelHandler
 
 function loginOptionsCancelEnabled(val){
+    if (!loginOptionsCancelContainer) {
+        return
+    }
+
     if(val){
         $(loginOptionsCancelContainer).show()
     } else {
@@ -19,37 +23,45 @@ function loginOptionsCancelEnabled(val){
     }
 }
 
-loginOptionMicrosoft.onclick = (e) => {
-    switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
-        ipcRenderer.send(
-            MSFT_OPCODE.OPEN_LOGIN,
-            loginOptionsViewOnLoginSuccess,
-            loginOptionsViewOnLoginCancel
-        )
-    })
+if (loginOptionMicrosoft) {
+    loginOptionMicrosoft.onclick = (e) => {
+        switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
+            ipcRenderer.send(
+                MSFT_OPCODE.OPEN_LOGIN,
+                loginOptionsViewOnLoginSuccess,
+                loginOptionsViewOnLoginCancel
+            )
+        })
+    }
 }
 
-loginOptionMojang.onclick = (e) => {
-    switchView(getCurrentView(), VIEWS.login, 500, 500, () => {
-        loginViewOnSuccess = loginOptionsViewOnLoginSuccess
-        loginViewOnCancel = loginOptionsViewOnLoginCancel
-        loginCancelEnabled(true)
-    })
+if (loginOptionMojang) {
+    loginOptionMojang.onclick = (e) => {
+        switchView(getCurrentView(), VIEWS.login, 500, 500, () => {
+            loginViewOnSuccess = loginOptionsViewOnLoginSuccess
+            loginViewOnCancel = loginOptionsViewOnLoginCancel
+            loginCancelEnabled(true)
+        })
+    }
 }
 
-waitingCancelButton.onclick = () => {
-    ipcRenderer.send(MSFT_OPCODE.CANCEL_LOGIN)
+if (waitingCancelButton) {
+    waitingCancelButton.onclick = () => {
+        ipcRenderer.send(MSFT_OPCODE.CANCEL_LOGIN)
+    }
 }
 
-loginOptionsCancelButton.onclick = (e) => {
-    switchView(getCurrentView(), loginOptionsViewOnCancel, 500, 500, () => {
-        // Clear login values (Mojang login)
-        // No cleanup needed for Microsoft.
-        loginUsername.value = ''
-        loginPassword.value = ''
-        if(loginOptionsViewCancelHandler != null){
-            loginOptionsViewCancelHandler()
-            loginOptionsViewCancelHandler = null
-        }
-    })
+if (loginOptionsCancelButton) {
+    loginOptionsCancelButton.onclick = (e) => {
+        switchView(getCurrentView(), loginOptionsViewOnCancel, 500, 500, () => {
+            // Clear login values (Mojang login)
+            // No cleanup needed for Microsoft.
+            loginUsername.value = ''
+            loginPassword.value = ''
+            if(loginOptionsViewCancelHandler != null){
+                loginOptionsViewCancelHandler()
+                loginOptionsViewCancelHandler = null
+            }
+        })
+    }
 }
