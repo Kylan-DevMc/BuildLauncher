@@ -1,0 +1,85 @@
+name: Beta Build
+
+on:
+  push:
+    tags:
+      - 'v*-beta'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      - name: Verify beta tag version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node -e "const version = require('./package.json').version; if (process.env.RELEASE_TAG !== 'v' + version) throw new Error('Release tag must match package.json version: v' + version)"
+        shell: bash
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+
+      - name: Install Dependencies
+        run: npm ci
+        shell: bash
+
+      - name: Build platform artifacts and update metadata
+        run: npm run dist -- --publish=never
+        shell: bash
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: |
+            dist/Build-Launcher-setup-*.exe
+            dist/Build-Launcher-setup-*.AppImage
+            dist/latest*.yml
+            dist/Build-Launcher-setup-*.blockmap
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Create beta release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BuildLauncher v1.3.3 Beta (Windows/Linux)
+          generate_release_notes: true
+          make_latest: true
+          # Keep this discoverable to installed stable clients without prerelease updates enabled.
+          prerelease: false
+          files: |
+            release-assets/**/Build-Launcher-setup-*.exe
+            release-assets/**/Build-Launcher-setup-*.AppImage
+            release-assets/**/latest*.yml
+            release-assets/**/Build-Launcher-setup-*.blockmap
