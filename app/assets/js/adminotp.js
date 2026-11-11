@@ -1,6 +1,6 @@
 /* global window, document, AuthManager, updateSelectedAccount, switchView, getCurrentView, VIEWS */
 (() => {
-    const ADMIN_OTP_BASE_URL = `http://127.0.0.1:${Number(window.adminOtpPort) || 8787}`
+    const ADMIN_OTP_BASE_URL = window.adminOtpBaseUrl || `http://127.0.0.1:${Number(window.adminOtpPort) || 8787}`
     const ADMIN_OTP_VERIFY_URL = `${ADMIN_OTP_BASE_URL}/otp/verify`
     const ADMIN_OTP_REQUEST_URL = `${ADMIN_OTP_BASE_URL}/otp/request`
     const ADMIN_TRIGGER_PSEUDOS = new Set(['kylanmc0001', 'matteo'])
@@ -120,6 +120,12 @@
                 return
             }
 
+            window.adminSession = {
+                role: result.role,
+                token: result.sessionToken || null,
+                expiresAt: result.expiresAt || null,
+                pseudo: pseudo.trim().toLowerCase()
+            }
             const authAccount = await AuthManager.addMojangAccount(pseudo, '')
             updateSelectedAccount(authAccount)
             adminOtpInput.value = ''

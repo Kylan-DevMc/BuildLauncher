@@ -31,6 +31,7 @@ const {
 //const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
 const NeoForge                = require('./assets/js/neoforge')
+const ManagedMods              = require('./assets/js/managedmods')
 
 // Launch Elements
 const launch_content          = document.getElementById('launch_content')
@@ -590,6 +591,15 @@ async function dlAsync(login = true) {
     const versionData = await mojangIndexProcessor.getVersionJson()
 
     if(login) {
+        setLaunchDetails('Synchronisation des mods partagés...')
+        try {
+            await ManagedMods.syncManagedMods(serv.rawServer.id)
+        } catch (err) {
+            loggerLaunchSuite.error('Unable to synchronize shared mods.', err)
+            showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringLaunchTitle'), err.message || Lang.queryJS('landing.dlAsync.seeConsoleForDetails'))
+            return
+        }
+
         const authUser = ConfigManager.getSelectedAccount()
         loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`)
         let pb = new ProcessBuilder(serv, versionData, modLoaderData, authUser, remote.app.getVersion())
@@ -962,12 +972,12 @@ document.addEventListener('keydown', (e) => {
  * @param {number} index The article index.
  */
 function displayArticle(articleObject, index){
-    newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
-    newsArticleAuthor.innerHTML = 'by ' + articleObject.author
-    newsArticleDate.innerHTML = articleObject.date
-    newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
+    newsArticleTitle.textContent = articleObject.title
+    newsArticleTitle.href = safeNewsLink(articleObject.link)
+    newsArticleAuthor.textContent = 'by ' + articleObject.author
+    newsArticleDate.textContent = articleObject.date
+    newsArticleComments.textContent = articleObject.comments
+    newsArticleComments.href = safeNewsLink(articleObject.commentsLink)
     newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
     Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
         v.onclick = () => {
@@ -979,75 +989,120 @@ function displayArticle(articleObject, index){
     newsContent.setAttribute('article', index-1)
 }
 
+function safeNewsLink(value) {
+    return typeof value === 'string' && /^https?:\/\//i.test(value) ? value : '#'
+}
+
+function escapeNewsText(value) {
+    return value.replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        '\u0027': '&#39;'
+    })[character])
+}
+
 /**
  * Load news information from the RSS feed specified in the
- * distribution index.
+ * distribution index and managed articles from the OTP site.
  */
 async function loadNews(){
 
     const distroData = await DistroAPI.getDistribution()
-    if(!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
-        return null
-    }
-
-    const promise = new Promise((resolve, reject) => {
-        
-        const newsFeed = distroData.rawDistribution.rss
+    let rssArticles = []
+    const newsFeed = distroData.rawDistribution.rss
+    if(newsFeed) {
         const newsHost = new URL(newsFeed).origin + '/'
-        $.ajax({
-            url: newsFeed,
-            success: (data) => {
-                const items = $(data).find('item')
-                const articles = []
+        const rssResult = await new Promise(resolve => {
+            $.ajax({
+                url: newsFeed,
+                success: data => {
+                    const items = $(data).find('item')
+                    const articles = []
 
-                for(let i=0; i<items.length; i++){
-                // JQuery Element
-                    const el = $(items[i])
+                    for(let i=0; i<items.length; i++){
+                        const el = $(items[i])
+                        const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric'
+                        })
+                        let comments = el.find('slash\\:comments').text() || '0'
+                        comments = comments + ' Comment' + (comments === '1' ? '' : 's')
+                        let content = el.find('content\\:encoded').text()
+                        let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
+                        let matches
+                        while((matches = regex.exec(content))){
+                            content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
+                        }
 
-                    // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
-
-                    // Resolve comments.
-                    let comments = el.find('slash\\:comments').text() || '0'
-                    comments = comments + ' Comment' + (comments === '1' ? '' : 's')
-
-                    // Fix relative links in content.
-                    let content = el.find('content\\:encoded').text()
-                    let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
-                    let matches
-                    while((matches = regex.exec(content))){
-                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
-                    }
-
-                    let link   = el.find('link').text()
-                    let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text()
-
-                    // Generate article.
-                    articles.push(
-                        {
+                        const link = el.find('link').text()
+                        articles.push({
                             link,
-                            title,
+                            title: el.find('title').text(),
                             date,
-                            author,
+                            author: el.find('dc\\:creator').text(),
                             content,
                             comments,
                             commentsLink: link + '#comments'
-                        }
-                    )
-                }
-                resolve({
-                    articles
-                })
-            },
-            timeout: 2500
-        }).catch(err => {
-            resolve({
-                articles: null
+                        })
+                    }
+                    resolve(articles)
+                },
+                error: () => resolve(null),
+                timeout: 2500
             })
         })
-    })
+        if(rssResult) {
+            rssArticles = rssResult
+        } else {
+            loggerLanding.warn('Unable to load the configured RSS news feed.')
+        }
+    } else {
+        loggerLanding.debug('No RSS feed provided.')
+    }
 
-    return await promise
+    let managedArticles = []
+    try {
+        const response = await fetch(`${window.adminContentBaseUrl}/content`, {
+            signal: AbortSignal.timeout(10000)
+        })
+        if(!response.ok) throw new Error(`Content service returned HTTP ${response.status}.`)
+        const content = await response.json()
+        if(!content || !Array.isArray(content.articles)) {
+            throw new Error('Content service returned an invalid article list.')
+        }
+        managedArticles = content.articles.map(article => ({
+            link: article.link || '#',
+            title: article.title,
+            date: new Date(article.date).toLocaleDateString('fr-FR', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            }),
+            sortDate: new Date(article.date).getTime() || 0,
+            author: article.author || 'BuildLauncher',
+            content: article.content.split(/\n{2,}/).map(paragraph =>
+                `<p>${escapeNewsText(paragraph).replace(/\n/g, '<br>')}</p>`
+            ).join(''),
+            comments: '0 Comments',
+            commentsLink: article.link ? `${article.link}#comments` : '#'
+        }))
+    } catch (error) {
+        loggerLanding.warn('Unable to load admin-managed news articles.', error)
+        if(rssArticles.length === 0) return { articles: null }
+    }
+
+    const articles = [...rssArticles, ...managedArticles]
+        .sort((left, right) => {
+            const leftDate = left.sortDate || Date.parse(left.date) || 0
+            const rightDate = right.sortDate || Date.parse(right.date) || 0
+            return rightDate - leftDate
+        })
+    return { articles }
 }

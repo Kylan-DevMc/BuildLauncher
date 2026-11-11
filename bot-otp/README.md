@@ -41,15 +41,24 @@ Generer une valeur aleatoire pour `OTP_PEPPER`, par exemple avec PowerShell :
 npm start
 ```
 
-La saisie d'un pseudo reserve dans le login demande automatiquement un OTP au bot; il envoie le code par DM aux comptes listes dans `ADMIN_DISCORD_IDS`. Le code expire apres 5 minutes, n'est utilisable qu'une fois et les demandes sont limitees a une par minute. Un admin peut aussi demander manuellement un code avec `/otp` dans Discord.
+La saisie d'un pseudo reserve demande un OTP au bot; il envoie le code par DM aux comptes listes dans `ADMIN_DISCORD_IDS`. Le code expire apres 5 minutes, n'est utilisable qu'une fois et les demandes sont limitees a une par minute. Un admin peut aussi demander manuellement un code avec `/otp` dans Discord.
 
-Dans l'application Windows compilee, le launcher copie `.env.example` vers `%APPDATA%\Build Launcher\bot-otp\.env` au premier demarrage et propose d'ouvrir ce fichier. Renseigner les quatre valeurs requises sur le PC administrateur, puis redemarrer le launcher. Ce fichier reste dans le profil Windows et n'est jamais inclus dans l'installateur; ne pas le partager ni le committer.
+## Portail Netlify et contenu admin
 
-Si le panneau OTP affiche une erreur de connexion, verifier que ce fichier contient les quatre valeurs requises et que le launcher a ete redemarre. Le port `PORT` du fichier est utilise automatiquement par le launcher. Les secrets ne sont volontairement pas embarques dans l'installateur.
+Le launcher compile utilise `https://buildotpadmin.netlify.app` pour la connexion OTP. Le site Netlify doit avoir les fonctions de `netlify/functions` et le stockage Netlify Blobs active. Configurer dans Netlify :
 
-Le pseudo `admin` ouvre discretement le panneau OTP dans le login. Le launcher appelle `POST /otp/verify` avec `{ "pseudo": "admin", "code": "123456" }`. L'URL locale est definie dans `app/assets/js/adminotp.js`; pour la production, la remplacer par une URL HTTPS.
+- `DISCORD_BOT_TOKEN`
+- `ADMIN_DISCORD_IDS`
+- `ADMIN_TRIGGER_PSEUDOS`
+- `OTP_PEPPER` (au moins 32 caracteres aleatoires)
 
-Reponse acceptee : `{ "ok": true, "role": "admin" }`.
+Le portail d'administration se trouve a la racine du site Netlify. Apres verification OTP, les admins peuvent publier/supprimer des articles et gerer le catalogue de mods partage. Les nouveaux articles apparaissent a cote du flux RSS deja configure.
+
+Pour les mods, renseigner une URL HTTPS directe vers un fichier `.jar` (Modrinth, CurseForge ou Netlify) et les IDs de mondes cibles; `*` cible tous les mondes. Le fichier du mod n'est pas envoye a une fonction Netlify : seule son URL et ses metadonnees y sont stockees. Le launcher telecharge le JAR, verifie son format et le SHA-512 si celui-ci est fourni.
+
+Le service signe une session admin a courte duree a partir de `OTP_PEPPER`; les appels d'ecriture valident le jeton cote serveur. Ne jamais embarquer le token Discord dans le launcher ou dans le site public.
+
+En developpement, le launcher peut continuer a utiliser le service local configure dans `bot-otp/.env`. Ce fichier ne doit pas etre partage ni commite.
 
 ## Test local
 
@@ -60,6 +69,6 @@ Copy-Item .env.example .env
 npm start
 ```
 
-Dans Discord, executer `/otp`, recevoir le message prive, puis saisir le code dans **Acces administrateur** dans le launcher.
+Dans Discord, executer `/otp`, recevoir le message prive, puis saisir le code dans le launcher ou le portail Netlify.
 
 Pour un launcher distant, ne pas exposer directement le port Node : placer l'API derriere HTTPS et un reverse proxy.

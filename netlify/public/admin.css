@@ -1,0 +1,126 @@
+:root {
+    color-scheme: dark;
+    font-family: Segoe UI, sans-serif;
+    background: #171614;
+    color: #f5f2ea;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 28px 16px;
+}
+
+main {
+    width: min(840px, 100%);
+    margin: 0 auto;
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+header {
+    margin-bottom: 24px;
+}
+
+.panel {
+    padding: 22px;
+    margin: 18px 0;
+    border: 1px solid #47433d;
+    border-radius: 12px;
+    background: #211f1b;
+}
+
+label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #625d54;
+    border-radius: 6px;
+    background: #12110f;
+    color: inherit;
+    font: inherit;
+}
+
+button {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: #8cae24;
+    color: #10110b;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+button.secondary {
+    background: #48443d;
+    color: #fff;
+}
+
+.toolbar, .actions, .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.toolbar h2 {
+    margin: 0;
+}
+
+.items {
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    padding: 12px 0;
+    border-top: 1px solid #47433d;
+}
+
+.item-title {
+    overflow-wrap: anywhere;
+}
+
+.item-actions {
+    flex-shrink: 0;
+}
+
+.item-actions button {
+    margin: 0 0 0 6px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+#status, #adminStatus {
+    min-height: 1.4em;
+}
+
+@media (max-width: 560px) {
+    .panel {
+        padding: 16px;
+    }
+
+    .item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

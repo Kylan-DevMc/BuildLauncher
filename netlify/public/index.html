@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administration BuildLauncher</title>
+    <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Administration BuildLauncher</h1>
+            <p>Connecte-toi avec ton pseudo admin et le code reçu par message privé Discord.</p>
+        </header>
+
+        <section id="loginPanel" class="panel">
+            <label for="pseudo">Pseudo admin</label>
+            <input id="pseudo" autocomplete="username" maxlength="32">
+            <button id="requestOtp" type="button">Recevoir un code OTP</button>
+            <label for="otpCode">Code OTP</label>
+            <input id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            <button id="verifyOtp" type="button">Vérifier et ouvrir l’administration</button>
+            <p id="status" role="status"></p>
+        </section>
+
+        <section id="adminPanel" hidden>
+            <div class="toolbar">
+                <h2>Contenu partagé avec les joueurs</h2>
+                <button id="logout" type="button" class="secondary">Déconnexion</button>
+            </div>
+
+            <section class="panel">
+                <h2>Mods</h2>
+                <p>Ajoute un lien HTTPS direct vers un fichier .jar Modrinth, CurseForge ou hébergé sur Netlify. Les mods sont distribués à tous les joueurs du ou des mondes indiqués.</p>
+                <form id="modForm">
+                    <input id="modId" type="hidden">
+                    <label for="modName">Nom du mod</label>
+                    <input id="modName" maxlength="120" required>
+                    <label for="modVersion">Version (facultatif)</label>
+                    <input id="modVersion" maxlength="80">
+                    <label for="modWorlds">IDs des mondes, séparés par des virgules; * pour tous</label>
+                    <input id="modWorlds" value="*" required>
+                    <p>Les IDs correspondent aux champs <code>servers[].id</code> de la distribution.</p>
+                    <label for="modUrl">URL HTTPS directe du fichier .jar</label>
+                    <input id="modUrl" type="url" placeholder="https://..." required>
+                    <label for="modSha512">SHA-512 hexadécimal (facultatif)</label>
+                    <input id="modSha512" minlength="128" maxlength="128" pattern="[a-fA-F0-9]{128}">
+                    <div class="actions">
+                        <button type="submit">Enregistrer le mod</button>
+                        <button id="cancelModEdit" type="button" class="secondary" hidden>Annuler</button>
+                    </div>
+                </form>
+                <ul id="modsList" class="items"></ul>
+            </section>
+
+            <section class="panel">
+                <h2>Actualités</h2>
+                <p>Ces articles seront affichés avec le flux RSS actuel. Tu peux modifier ou supprimer les articles créés ici.</p>
+                <form id="articleForm">
+                    <input id="articleId" type="hidden">
+                    <label for="articleTitle">Titre</label>
+                    <input id="articleTitle" maxlength="160" required>
+                    <label for="articleAuthor">Auteur</label>
+                    <input id="articleAuthor" maxlength="80">
+                    <label for="articleLink">Lien (facultatif)</label>
+                    <input id="articleLink" type="url" placeholder="https://...">
+                    <label for="articleContent">Texte de l’article</label>
+                    <textarea id="articleContent" maxlength="20000" rows="8" required></textarea>
+                    <div class="actions">
+                        <button type="submit">Publier l’article</button>
+                        <button id="cancelArticleEdit" type="button" class="secondary" hidden>Annuler</button>
+                    </div>
+                </form>
+                <ul id="articlesList" class="items"></ul>
+            </section>
+            <p id="adminStatus" role="status"></p>
+        </section>
+    </main>
+    <script src="/admin.js"></script>
+</body>
+</html>

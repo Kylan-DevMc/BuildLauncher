@@ -255,6 +255,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 let win
 let otpProcess
 let otpPort = 8787
+const remoteOtpBaseUrl = 'https://buildotpadmin.netlify.app'
 
 function readOtpPort(envContent) {
     const configuredPort = process.env.PORT || envContent.match(/^\s*PORT\s*=\s*["']?(\d+)["']?\s*(?:#.*)?$/m)?.[1]
@@ -393,6 +394,8 @@ function createWindow() {
     const data = {
         bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),
         otpPort,
+        otpBaseUrl: app.isPackaged ? remoteOtpBaseUrl : `http://127.0.0.1:${otpPort}`,
+        adminContentBaseUrl: remoteOtpBaseUrl,
         lang: (str, placeHolders) => LangLoader.queryEJS(str, placeHolders)
     }
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))
@@ -509,7 +512,9 @@ function getPlatformIcon(filename){
 }
 
 app.on('ready', () => {
-    startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
+    if(!app.isPackaged) {
+        startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
+    }
     createWindow()
 })
 app.on('ready', createMenu)
