@@ -292,6 +292,8 @@ selectAnotherAccountButton = "Selectionnez un autre compte"
 checkingForUpdateButton = "Vérification des mises à jour ..."
 installNowButton = "Installer maintenant"
 checkForUpdatesButton = "Vérifier les mises à jour"
+downloadProgressLabel = "Téléchargement de la mise à jour"
+downloadComplete = "Téléchargement terminé"
 
 [js.auth.microsoft.error]
 noProfileTitle = "Error During Login:<br>Profile Not Set Up"
