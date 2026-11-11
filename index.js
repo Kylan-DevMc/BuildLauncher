@@ -4,8 +4,6 @@ remoteMain.initialize()
 // Requirements
 const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
-const AdmZip                            = require('adm-zip')
-const child_process                     = require('child_process')
 const ejse                              = require('ejs-electron')
 const fs                                = require('fs')
 const isDev                             = require('./app/assets/js/isdev')
@@ -253,125 +251,6 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
-let otpProcess
-let otpPort = 8787
-
-function readOtpPort(envContent) {
-    const configuredPort = process.env.PORT || envContent.match(/^\s*PORT\s*=\s*["']?(\d+)["']?\s*(?:#.*)?$/m)?.[1]
-    if(configuredPort == null) {
-        return 8787
-    }
-
-    const port = Number(configuredPort)
-    if(!Number.isInteger(port) || port < 1 || port > 65535) {
-        throw new Error('Invalid OTP PORT. Use a number between 1 and 65535.')
-    }
-    return port
-}
-
-async function showOtpConfigurationDialog(envPath, missingEnv = []) {
-    const requiredFields = missingEnv.length > 0
-        ? missingEnv.join(', ')
-        : 'DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID, ADMIN_DISCORD_IDS, OTP_PEPPER'
-    const { response } = await dialog.showMessageBox({
-        type: 'warning',
-        title: 'Configuration OTP requise',
-        message: 'Le service OTP Discord n’est pas configuré.',
-        detail: `Renseigne ${requiredFields} dans ce fichier, puis redémarre BuildLauncher :\n${envPath}`,
-        buttons: ['Ouvrir le fichier', 'Plus tard'],
-        defaultId: 0,
-        cancelId: 1
-    })
-
-    if(response === 0) {
-        const error = await shell.openPath(envPath)
-        if(error) console.error(`Unable to open OTP configuration file: ${error}`)
-    }
-}
-
-async function startOtpService() {
-    if(otpProcess) return
-
-    const serviceResourceDirectory = app.isPackaged
-        ? path.join(process.resourcesPath, 'bot-otp')
-        : path.join(__dirname, 'bot-otp')
-    const configDirectory = app.isPackaged
-        ? path.join(userDataPath, 'bot-otp')
-        : serviceResourceDirectory
-    const envPath = path.join(configDirectory, '.env')
-
-    if(!fs.existsSync(envPath) && app.isPackaged) {
-        fs.mkdirSync(configDirectory, { recursive: true })
-        fs.copyFileSync(path.join(serviceResourceDirectory, '.env.example'), envPath)
-        console.warn(`[OTP] Configure Discord credentials in ${envPath}, then restart the launcher.`)
-        await showOtpConfigurationDialog(envPath)
-        return
-    }
-
-    if(!fs.existsSync(envPath)) {
-        console.warn(`[OTP] No configuration found at ${envPath}; the service was not started.`)
-        return
-    }
-
-    const envContent = fs.readFileSync(envPath, 'utf8')
-    otpPort = readOtpPort(envContent)
-    const requiredEnv = ['DISCORD_BOT_TOKEN', 'DISCORD_CLIENT_ID', 'ADMIN_DISCORD_IDS', 'OTP_PEPPER']
-    const missingEnv = requiredEnv.filter(name => !new RegExp(`^${name}=\\s*[^\\s#]+`, 'm').test(envContent))
-    if(missingEnv.length > 0) {
-        console.warn(`[OTP] Complete ${missingEnv.join(', ')} in ${envPath}; the service was not started.`)
-        if(app.isPackaged) await showOtpConfigurationDialog(envPath, missingEnv)
-        return
-    }
-
-    try {
-        const response = await fetch(`http://127.0.0.1:${otpPort}/health`, {
-            signal: AbortSignal.timeout(1000)
-        })
-        if(response.ok) {
-            console.log('[OTP] Existing OTP service detected; reusing it.')
-            return
-        }
-    } catch {}
-
-    let serviceDirectory = serviceResourceDirectory
-    if(app.isPackaged) {
-        serviceDirectory = path.join(configDirectory, 'runtime')
-        if(!fs.existsSync(path.join(serviceDirectory, 'server.js'))) {
-            fs.mkdirSync(serviceDirectory, { recursive: true })
-            new AdmZip(path.join(serviceResourceDirectory, 'bot-otp-runtime.zip')).extractAllTo(serviceDirectory, true)
-        }
-    }
-
-    const executable = app.isPackaged
-        ? process.execPath
-        : (process.platform === 'win32' ? 'node.exe' : 'node')
-    const serverArgs = [path.join(serviceDirectory, 'server.js')]
-    otpProcess = child_process.spawn(executable, app.isPackaged ? serverArgs : ['server.js'], {
-        cwd: serviceDirectory,
-        env: {
-            ...process.env,
-            PORT: String(otpPort),
-            DOTENV_CONFIG_PATH: envPath,
-            ...(app.isPackaged ? { ELECTRON_RUN_AS_NODE: '1' } : {})
-        },
-        stdio: ['ignore', 'pipe', 'pipe']
-    })
-
-    otpProcess.stdout.on('data', data => console.log(`[OTP] ${data.toString().trim()}`))
-    otpProcess.stderr.on('data', data => console.error(`[OTP] ${data.toString().trim()}`))
-    otpProcess.on('error', error => console.error('Unable to start OTP service:', error))
-    otpProcess.on('exit', (code, signal) => {
-        console.log(`OTP service stopped (${code ?? signal})`)
-        otpProcess = null
-    })
-}
-
-function stopOtpService() {
-    if(otpProcess && !otpProcess.killed) {
-        otpProcess.kill()
-        otpProcess = null
-    }
-}
 
 function createWindow() {
 
@@ -392,7 +271,6 @@ function createWindow() {
 
     const data = {
         bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),
-        otpPort,
         lang: (str, placeHolders) => LangLoader.queryEJS(str, placeHolders)
     }
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))
@@ -508,13 +386,8 @@ function getPlatformIcon(filename){
     return path.join(imageDir, `${filename}.${fallbackExt}`)
 }
 
-app.on('ready', () => {
-    startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
-    createWindow()
-})
+app.on('ready', createWindow)
 app.on('ready', createMenu)
-
-app.on('before-quit', stopOtpService)
 
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar

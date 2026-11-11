@@ -1,10 +1,10 @@
 /* global window, document, AuthManager, updateSelectedAccount, switchView, getCurrentView, VIEWS */
 (() => {
-    const ADMIN_OTP_BASE_URL = `http://127.0.0.1:${Number(window.adminOtpPort) || 8787}`
+    const ADMIN_OTP_BASE_URL = 'https://buildotpadmin.netlify.app'
     const ADMIN_OTP_VERIFY_URL = `${ADMIN_OTP_BASE_URL}/otp/verify`
     const ADMIN_OTP_REQUEST_URL = `${ADMIN_OTP_BASE_URL}/otp/request`
     const ADMIN_TRIGGER_PSEUDOS = new Set(['kylanmc0001', 'matteo'])
-    const OTP_SERVICE_UNAVAILABLE = 'Service OTP inaccessible. Dans l’application compilée, configure %APPDATA%\\Build Launcher\\bot-otp\\.env puis redémarre le launcher.'
+    const OTP_SERVICE_UNAVAILABLE = 'Site OTP inaccessible. Vérifie ta connexion Internet et réessaie.'
 
     const loginUsername = document.getElementById('loginUsername')
     const loginButton = document.getElementById('loginButton')
@@ -49,9 +49,9 @@
                 throw new Error(`Attends ${result.retryAfterSeconds} s avant une nouvelle demande.`)
             }
             if(response.status === 503) {
-                throw new Error('Le bot Discord n’est pas encore connecté. Réessaie dans quelques secondes.')
+                throw new Error('Le service OTP est indisponible ou mal configuré. Réessaie plus tard.')
             }
-            if(!response.ok) throw new Error('Envoi impossible. Vérifie que le bot Discord est lancé et que les messages privés sont autorisés.')
+            if(!response.ok) throw new Error('Envoi impossible. Vérifie la configuration du site et les messages privés Discord.')
             setAdminOtpStatus('Code envoyé en message privé Discord. Il expire dans 5 minutes.', true)
         } catch(error) {
             setAdminOtpStatus(error instanceof TypeError ? OTP_SERVICE_UNAVAILABLE : error.message || 'Impossible de contacter le bot Discord.')
@@ -112,11 +112,11 @@
                 return
             }
             if(!response.ok) {
-                setAdminOtpStatus('Le service OTP a refusé la vérification. Relance le bot puis demande un nouveau code.')
+                setAdminOtpStatus('Le site OTP a refusé la vérification. Réessaie plus tard.')
                 return
             }
             if(result.role !== 'admin') {
-                setAdminOtpStatus('Réponse invalide du service OTP. Relance le bot et redemande un code.')
+                setAdminOtpStatus('Réponse invalide du site OTP. Réessaie plus tard.')
                 return
             }
 

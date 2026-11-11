@@ -1,65 +1,37 @@
 # Bot Discord OTP
 
-Service separe du launcher. Le token Discord ne doit jamais etre place dans le launcher.
+En production, le launcher utilise le site Netlify pour demander et verifier les codes OTP. Le token Discord reste cote serveur et n'est jamais integre au launcher.
 
-## Configuration Discord
+## Flux du launcher
 
-1. Ouvrir le [Discord Developer Portal](https://discord.com/developers/applications).
-2. Creer une application, puis ajouter un bot dans l'onglet **Bot**.
-3. Copier l'Application ID dans `DISCORD_CLIENT_ID`.
-4. Copier le token du bot uniquement dans `.env` local. Ne pas le committer ni l'envoyer dans le chat.
-5. Inviter le bot sur le serveur avec les scopes `bot` et `applications.commands`, et la permission `Send Messages`.
-6. Activer le mode developpeur Discord, puis copier les IDs du serveur et des admins.
+1. L'admin saisit son pseudo reserve dans le launcher.
+2. Le launcher appelle `POST https://buildotpadmin.netlify.app/otp/request`.
+3. Le site genere un code et l'envoie en message prive Discord aux comptes admin configures.
+4. L'admin saisit le code a 6 chiffres dans le launcher.
+5. Le launcher appelle `POST https://buildotpadmin.netlify.app/otp/verify`; le site verifie le code et accorde l'acces admin.
 
-## Installation
+Le code expire apres 5 minutes, ne peut etre utilise qu'une fois et les demandes sont limitees. Les fonctions Netlify et Netlify Blobs doivent etre deployes pour que ce flux fonctionne.
+
+## Configuration Netlify
+
+Configurer ces variables dans les parametres du site :
+
+- `DISCORD_BOT_TOKEN` : token du bot Discord
+- `ADMIN_DISCORD_IDS` : IDs Discord des admins, separes par des virgules
+- `ADMIN_TRIGGER_PSEUDOS` : pseudos autorises par le launcher, actuellement `kylanmc0001,matteo`
+- `OTP_PEPPER` : valeur aleatoire secrete d'au moins 32 caracteres
+
+Ne jamais placer ces secrets dans le launcher ni dans les fichiers publics du site. La connexion Google au tableau de bord Netlify sert uniquement a administrer/deployer le site; ce n'est pas la connexion OTP du launcher.
+
+## Serveur local de developpement (optionnel)
+
+Le serveur Node local peut etre utilise pour tester le bot independamment du launcher :
 
 ```powershell
 cd bot-otp
 npm install
 Copy-Item .env.example .env
-```
-
-Remplir `.env` localement avec :
-
-- `DISCORD_BOT_TOKEN` : token du bot
-- `DISCORD_CLIENT_ID` : ID de l'application Discord
-- `DISCORD_GUILD_ID` : ID du serveur Discord, optionnel mais recommande pour enregistrer la commande rapidement
-- `ADMIN_DISCORD_IDS` : IDs Discord admin separes par des virgules
-- `ADMIN_TRIGGER_PSEUDOS` : pseudos reserves qui ouvrent le panneau OTP, par exemple `admin`
-- `OTP_PEPPER` : longue valeur aleatoire, differente du token
-- `HOST` et `PORT` : adresse d'ecoute de l'API
-
-Generer une valeur aleatoire pour `OTP_PEPPER`, par exemple avec PowerShell :
-
-```powershell
-[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
-```
-
-## Utilisation
-
-```powershell
 npm start
 ```
 
-La saisie d'un pseudo reserve dans le login demande automatiquement un OTP au bot; il envoie le code par DM aux comptes listes dans `ADMIN_DISCORD_IDS`. Le code expire apres 5 minutes, n'est utilisable qu'une fois et les demandes sont limitees a une par minute. Un admin peut aussi demander manuellement un code avec `/otp` dans Discord.
-
-Dans l'application Windows compilee, le launcher copie `.env.example` vers `%APPDATA%\Build Launcher\bot-otp\.env` au premier demarrage et propose d'ouvrir ce fichier. Renseigner les quatre valeurs requises sur le PC administrateur, puis redemarrer le launcher. Ce fichier reste dans le profil Windows et n'est jamais inclus dans l'installateur; ne pas le partager ni le committer.
-
-Si le panneau OTP affiche une erreur de connexion, verifier que ce fichier contient les quatre valeurs requises et que le launcher a ete redemarre. Le port `PORT` du fichier est utilise automatiquement par le launcher. Les secrets ne sont volontairement pas embarques dans l'installateur.
-
-Le pseudo `admin` ouvre discretement le panneau OTP dans le login. Le launcher appelle `POST /otp/verify` avec `{ "pseudo": "admin", "code": "123456" }`. L'URL locale est definie dans `app/assets/js/adminotp.js`; pour la production, la remplacer par une URL HTTPS.
-
-Reponse acceptee : `{ "ok": true, "role": "admin" }`.
-
-## Test local
-
-```powershell
-cd bot-otp
-Copy-Item .env.example .env
-# Remplir .env avec les valeurs Discord et les IDs admin
-npm start
-```
-
-Dans Discord, executer `/otp`, recevoir le message prive, puis saisir le code dans **Acces administrateur** dans le launcher.
-
-Pour un launcher distant, ne pas exposer directement le port Node : placer l'API derriere HTTPS et un reverse proxy.
+Le fichier `.env` local doit contenir `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `ADMIN_DISCORD_IDS`, `ADMIN_TRIGGER_PSEUDOS` et `OTP_PEPPER`. `DISCORD_GUILD_ID`, `HOST` et `PORT` sont optionnels. Ne pas committer ni partager `.env`, et ne pas exposer directement le serveur local sur Internet.

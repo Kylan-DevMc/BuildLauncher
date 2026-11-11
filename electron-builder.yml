@@ -18,11 +18,6 @@ files:
 
 extraResources:
   - 'libraries'
-  - from: 'build/otp-runtime'
-    to: 'bot-otp'
-    filter:
-      - '.env.example'
-      - 'bot-otp-runtime.zip'
 
 # Windows Configuration
 win: 
