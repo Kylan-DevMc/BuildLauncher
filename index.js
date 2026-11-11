@@ -256,6 +256,26 @@ let win
 let otpProcess
 let otpPort = 8787
 
+async function showOtpConfigurationDialog(envPath, missingEnv = []) {
+    const requiredFields = missingEnv.length > 0
+        ? missingEnv.join(', ')
+        : 'DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID, ADMIN_DISCORD_IDS, OTP_PEPPER'
+    const { response } = await dialog.showMessageBox({
+        type: 'warning',
+        title: 'Configuration OTP requise',
+        message: 'Le service OTP Discord n’est pas configuré.',
+        detail: `Renseigne ${requiredFields} dans ce fichier, puis redémarre BuildLauncher :\n${envPath}`,
+        buttons: ['Ouvrir le fichier', 'Plus tard'],
+        defaultId: 0,
+        cancelId: 1
+    })
+
+    if(response === 0) {
+        const error = await shell.openPath(envPath)
+        if(error) console.error(`Unable to open OTP configuration file: ${error}`)
+    }
+}
+
 function readOtpPort(envContent) {
     const configuredPort = process.env.PORT || envContent.match(/^\s*PORT\s*=\s*["']?(\d+)["']?\s*(?:#.*)?$/m)?.[1]
     if(configuredPort == null) {
