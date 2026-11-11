@@ -55,6 +55,9 @@ function initAutoUpdater(event, data) {
     autoUpdater.on('update-available', (info) => {
         sendAutoUpdateNotification('update-available', info)
     })
+    autoUpdater.on('download-progress', (progress) => {
+        sendAutoUpdateNotification('download-progress', progress)
+    })
     autoUpdater.on('update-downloaded', (info) => {
         sendAutoUpdateNotification('update-downloaded', info)
     })
