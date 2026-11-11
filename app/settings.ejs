@@ -363,6 +363,15 @@
                     <div id="settingsUpdateActionContainer">
                         <button id="settingsUpdateActionButton"><%- lang('settings.checkForUpdates') %></button>
                     </div>
+                    <div id="settingsUpdateDownloadProgress">
+                        <div id="settingsUpdateDownloadProgressHeader" aria-live="polite">
+                            <span id="settingsUpdateDownloadProgressLabel"></span>
+                            <span id="settingsUpdateDownloadProgressText">0 %</span>
+                        </div>
+                        <div id="settingsUpdateDownloadProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <div id="settingsUpdateDownloadProgressBar"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="settingsChangelogContainer">

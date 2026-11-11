@@ -15,6 +15,8 @@ compression: 'maximum'
 files:
   - '!{dist,.gitignore,.vscode,docs,dev-app-update.yml,.nvmrc,eslint.config.mjs}'
   - '!bot-otp/**'
+  - '!netlify/**'
+  - '!netlify.toml'
 
 extraResources:
   - 'libraries'

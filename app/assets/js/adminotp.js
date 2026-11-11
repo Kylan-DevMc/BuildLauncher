@@ -1,6 +1,7 @@
 (() => {
-const ADMIN_OTP_VERIFY_URL = 'http://127.0.0.1:8787/otp/verify'
-const ADMIN_OTP_REQUEST_URL = 'http://127.0.0.1:8787/otp/request'
+const ADMIN_OTP_BASE_URL = globalThis.adminOtpBaseUrl || 'http://127.0.0.1:8787'
+const ADMIN_OTP_VERIFY_URL = `${ADMIN_OTP_BASE_URL}/otp/verify`
+const ADMIN_OTP_REQUEST_URL = `${ADMIN_OTP_BASE_URL}/otp/request`
 const ADMIN_TRIGGER_PSEUDOS = new Set(['kylanmc0001', 'matteo'])
 
 const loginUsername = document.getElementById('loginUsername')
@@ -32,10 +33,13 @@ async function requestAdminOtp(pseudo) {
         if(response.status === 429) {
             throw new Error(`Attends ${result.retryAfterSeconds} s avant une nouvelle demande.`)
         }
-        if(!response.ok) throw new Error('Envoi impossible. Vérifie que le bot Discord est lancé et que les messages privés sont autorisés.')
+        if(response.status === 503) {
+            throw new Error('Le service OTP Netlify n’est pas configuré. Contacte l’administrateur.')
+        }
+        if(!response.ok) throw new Error('Envoi impossible. Vérifie la configuration Netlify et les messages privés Discord.')
         setAdminOtpStatus('Code envoyé en message privé Discord. Il expire dans 5 minutes.', true)
     } catch(error) {
-        setAdminOtpStatus(error.message || 'Impossible de contacter le bot Discord.')
+        setAdminOtpStatus(error.message || 'Impossible de contacter le service OTP.')
     }
 }
 
@@ -92,8 +96,12 @@ adminOtpVerify.addEventListener('click', async () => {
             setAdminOtpStatus('Ce pseudo n’est pas autorisé pour l’accès admin.')
             return
         }
+        if(response.status === 503) {
+            setAdminOtpStatus('Le service OTP Netlify n’est pas configuré. Contacte l’administrateur.')
+            return
+        }
         if(!response.ok) {
-            setAdminOtpStatus('Le service OTP a refusé la vérification. Relance le bot puis demande un nouveau code.')
+            setAdminOtpStatus('Le service OTP a refusé la vérification. Demande un nouveau code et réessaie.')
             return
         }
         if(result.role !== 'admin') {
@@ -108,8 +116,10 @@ adminOtpVerify.addEventListener('click', async () => {
         setTimeout(() => {
             switchView(getCurrentView(), VIEWS.landing)
         }, 500)
-    } catch {
-        setAdminOtpStatus('Service OTP inaccessible. Vérifie que le bot est lancé, puis redemande un code.')
+    } catch(error) {
+        setAdminOtpStatus(error instanceof TypeError
+            ? 'Service OTP Netlify inaccessible. Vérifie la connexion Internet.'
+            : error.message || 'Vérification OTP impossible.')
     } finally {
         adminOtpVerify.disabled = false
     }

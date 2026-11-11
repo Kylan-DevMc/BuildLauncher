@@ -55,6 +55,9 @@ function initAutoUpdater(event, data) {
     autoUpdater.on('update-available', (info) => {
         sendAutoUpdateNotification('update-available', info)
     })
+    autoUpdater.on('download-progress', (progress) => {
+        sendAutoUpdateNotification('download-progress', progress)
+    })
     autoUpdater.on('update-downloaded', (info) => {
         sendAutoUpdateNotification('update-downloaded', info)
     })
@@ -254,6 +257,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 // be closed automatically when the JavaScript object is garbage collected.
 let win
 let otpProcess
+const remoteOtpBaseUrl = 'https://buildotpadmin.netlify.app'
 
 async function showOtpConfigurationDialog(envPath, missingEnv = []) {
     const requiredFields = missingEnv.length > 0
@@ -376,6 +380,7 @@ function createWindow() {
 
     const data = {
         bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),
+        otpBaseUrl: app.isPackaged ? remoteOtpBaseUrl : 'http://127.0.0.1:8787',
         lang: (str, placeHolders) => LangLoader.queryEJS(str, placeHolders)
     }
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))
@@ -492,7 +497,9 @@ function getPlatformIcon(filename){
 }
 
 app.on('ready', () => {
-    startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
+    if(!app.isPackaged) {
+        startOtpService().catch(error => console.error('Unable to initialize OTP service:', error))
+    }
     createWindow()
 })
 app.on('ready', createMenu)
