@@ -15,6 +15,38 @@ const Lang                           = require('./assets/js/langloader')
 const loggerUICore             = LoggerUtil.getLogger('UICore')
 const loggerAutoUpdater        = LoggerUtil.getLogger('AutoUpdater')
 
+function updateDownloadProgress(percent, complete = false){
+    const progressContainer = document.getElementById('settingsUpdateDownloadProgress')
+    const progressLabel = document.getElementById('settingsUpdateDownloadProgressLabel')
+    const progressTrack = document.getElementById('settingsUpdateDownloadProgressTrack')
+    const progressBar = document.getElementById('settingsUpdateDownloadProgressBar')
+    const progressText = document.getElementById('settingsUpdateDownloadProgressText')
+    if(!progressContainer || !progressLabel || !progressTrack || !progressBar || !progressText){
+        return
+    }
+
+    const numericPercent = Number(percent)
+    const boundedPercent = Number.isFinite(numericPercent)
+        ? Math.max(0, Math.min(100, numericPercent))
+        : 0
+    const label = Lang.queryJS('uicore.autoUpdate.downloadProgressLabel')
+    progressContainer.style.display = 'flex'
+    progressLabel.textContent = label
+    progressTrack.setAttribute('aria-label', label)
+    progressTrack.setAttribute('aria-valuenow', String(Math.round(boundedPercent)))
+    progressBar.style.width = `${boundedPercent}%`
+    progressText.textContent = complete
+        ? Lang.queryJS('uicore.autoUpdate.downloadComplete')
+        : `${Math.round(boundedPercent)} %`
+}
+
+function hideDownloadProgress(){
+    const progressContainer = document.getElementById('settingsUpdateDownloadProgress')
+    if(progressContainer){
+        progressContainer.style.display = 'none'
+    }
+}
+
 // Log deprecation and process warnings.
 process.traceProcessWarnings = true
 process.traceDeprecation = true
@@ -61,9 +93,18 @@ if(!isDev){
                 }
                 
                 populateSettingsUpdateInformation(info)
+                if(process.platform === 'darwin'){
+                    hideDownloadProgress()
+                } else {
+                    updateDownloadProgress(0)
+                }
+                break
+            case 'download-progress':
+                updateDownloadProgress(info?.percent)
                 break
             case 'update-downloaded':
                 loggerAutoUpdater.info('Update ' + info.version + ' ready to be installed.')
+                updateDownloadProgress(100, true)
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.installNowButton'), false, () => {
                     if(!isDev){
                         ipcRenderer.send('autoUpdateAction', 'installUpdateNow')
@@ -77,6 +118,7 @@ if(!isDev){
                     settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.latestVersionTitle')
                 }
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkForUpdatesButton'))
+                hideDownloadProgress()
                 break
             case 'ready':
                 if(updateCheckListener) {
@@ -98,6 +140,7 @@ if(!isDev){
                     settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.errorTitle')
                     settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkForUpdatesButton'))
                 }
+                hideDownloadProgress()
                 break
             default:
                 loggerAutoUpdater.info('Unknown argument', arg)
